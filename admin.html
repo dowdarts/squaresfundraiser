@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AADS Admin - Payment Approvals</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary-orange: #f39200;
+            --dark-grey: #2d2d2d;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a1a1a;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--primary-orange);
+        }
+
+        h1 {
+            color: var(--primary-orange);
+            margin: 0;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-box {
+            background: var(--dark-grey);
+            padding: 20px;
+            border-radius: 8px;
+            min-width: 150px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            color: var(--primary-orange);
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+
+        .pending-list {
+            background: var(--dark-grey);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .pending-item {
+            background: #333;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .pending-info {
+            flex: 1;
+        }
+
+        .buyer-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--primary-orange);
+            margin-bottom: 5px;
+        }
+
+        .squares-list {
+            color: #fff;
+            margin: 5px 0;
+        }
+
+        .square-badge {
+            display: inline-block;
+            background: #555;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin: 2px;
+            font-weight: bold;
+        }
+
+        .pending-time {
+            font-size: 0.85rem;
+            color: #999;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .btn-approve {
+            background: #5cb85c;
+            color: white;
+        }
+
+        .btn-approve:hover {
+            background: #4cae4c;
+        }
+
+        .btn-reject {
+            background: #d9534f;
+            color: white;
+        }
+
+        .btn-reject:hover {
+            background: #c9302c;
+        }
+
+        .no-pending {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 1.2rem;
+        }
+
+        .sold-section {
+            margin-top: 40px;
+        }
+
+        .sold-item {
+            background: #2a2a2a;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #5cb85c;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .refresh-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--primary-orange);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .refresh-btn:hover {
+            background: #d68100;
+        }
+
+        .complete-fundraiser-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.3rem;
+            margin: 30px auto;
+            display: block;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s;
+        }
+
+        .complete-fundraiser-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .complete-fundraiser-btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .lottery-section {
+            background: var(--dark-grey);
+            border-radius: 12px;
+            padding: 30px;
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 8px;
+            max-width: 800px;
+            margin: 20px auto;
+        }
+
+        .square {
+            aspect-ratio: 1;
+            background: #444;
+            border: 2px solid #555;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1rem;
+            color: white;
+            transition: all 0.2s;
+        }
+
+        .square.highlight {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            color: #000;
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+            border-color: #ffd700;
+        }
+
+        .square.winner {
+            color: white;
+            transform: scale(1.15);
+            border: 3px solid #ff6b6b;
+            animation: winnerPulseColor 2.5s infinite;
+        }
+
+        @keyframes winnerPulseColor {
+            0% { 
+                background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+                box-shadow: 0 0 30px rgba(255, 107, 107, 0.9);
+                transform: scale(1.15);
+                border-color: #ff6b6b;
+            }
+            20% { 
+                background: linear-gradient(135deg, #4285f4 0%, #357ae8 100%);
+                box-shadow: 0 0 35px rgba(66, 133, 244, 0.9);
+                transform: scale(1.2);
+                border-color: #4285f4;
+            }
+            40% { 
+                background: linear-gradient(135deg, #34a853 0%, #2d9648 100%);
+                box-shadow: 0 0 35px rgba(52, 168, 83, 0.9);
+                transform: scale(1.15);
+                border-color: #34a853;
+            }
+            60% { 
+                background: linear-gradient(135deg, #fbbc04 0%, #f9ab00 100%);
+                box-shadow: 0 0 35px rgba(251, 188, 4, 0.9);
+                transform: scale(1.2);
+                border-color: #fbbc04;
+            }
+            80% { 
+                background: linear-gradient(135deg, #ff8c00 0%, #ff7700 100%);
+                box-shadow: 0 0 35px rgba(255, 140, 0, 0.9);
+                transform: scale(1.15);
+                border-color: #ff8c00;
+            }
+            100% { 
+                background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+                box-shadow: 0 0 30px rgba(255, 107, 107, 0.9);
+                transform: scale(1.15);
+                border-color: #ff6b6b;
+            }
+        }
+
+        .winner-announcement {
+            margin-top: 30px;
+            padding: 30px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            border-radius: 12px;
+            font-size: 2rem;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            display: none;
+        }
+
+        .winner-announcement.show {
+            display: block;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: repeat(5, 1fr);
+                max-width: 400px;
+            }
+            .square {
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Tab Navigation */
+        .tab-container {
+            background: var(--dark-grey);
+            border-radius: 12px;
+            padding: 0;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .tab-nav {
+            display: flex;
+            background: #1a1a1a;
+            border-bottom: 2px solid var(--primary-orange);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px 20px;
+            background: transparent;
+            color: #999;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn:hover {
+            background: rgba(243, 146, 0, 0.1);
+            color: var(--primary-orange);
+        }
+
+        .tab-btn.active {
+            color: var(--primary-orange);
+            border-bottom-color: var(--primary-orange);
+            background: var(--dark-grey);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Square Management Table */
+        .square-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: #333;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .square-table thead {
+            background: #1a1a1a;
+        }
+
+        .square-table th {
+            padding: 12px;
+            text-align: left;
+            color: var(--primary-orange);
+            font-weight: bold;
+            border-bottom: 2px solid var(--primary-orange);
+        }
+
+        .square-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #444;
+        }
+
+        .square-table tr:hover {
+            background: #3a3a3a;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .status-available {
+            background: #ffc107;
+            color: #000;
+        }
+
+        .status-pending {
+            background: #d9534f;
+            color: white;
+        }
+
+        .status-sold {
+            background: #5cb85c;
+            color: white;
+        }
+
+        .reset-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .reset-btn:hover {
+            background: #ee5a6f;
+        }
+
+        .reset-all-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin: 20px auto;
+            display: block;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+            transition: all 0.3s;
+        }
+
+        .reset-all-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            background: #333;
+            border: 2px solid #555;
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+        }
+    </style>
+</head>
+<body>
+    <button class="refresh-btn" onclick="loadPendingPayments()">🔄 Refresh</button>
+
+    <div class="container">
+        <header>
+            <h1>🎯 AADS DARTS - ADMIN PANEL</h1>
+            <p>Payment Approval Dashboard</p>
+        </header>
+
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-number" id="pendingCount">0</div>
+                <div class="stat-label">Pending Payments</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="soldCount">0</div>
+                <div class="stat-label">Sold Squares</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="availableCount">50</div>
+                <div class="stat-label">Available</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">$<span id="totalRevenue">0.00</span></div>
+                <div class="stat-label">Total Revenue</div>
+            </div>
+        </div>
+
+        <!-- Tab Container -->
+        <div class="tab-container">
+            <div class="tab-nav">
+                <button class="tab-btn active" onclick="switchTab('payments')">💰 Payment Approvals</button>
+                <button class="tab-btn" onclick="switchTab('lottery')">🎰 Lottery</button>
+                <button class="tab-btn" onclick="switchTab('management')">⚙️ Square Management</button>
+            </div>
+
+            <!-- Tab 1: Payment Approvals -->
+            <div id="tab-payments" class="tab-content active">
+                <div class="pending-list">
+                    <h2>⏳ Pending Payment Approvals</h2>
+                    <div id="pendingContainer">
+                        <div class="no-pending">No pending payments</div>
+                    </div>
+                </div>
+
+                <div class="sold-section">
+                    <div class="pending-list">
+                        <h2>✅ Approved & Sold Squares</h2>
+                        <div id="soldContainer">
+                            <div class="no-pending">No sold squares yet</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Lottery -->
+            <div id="tab-lottery" class="tab-content">
+                <div class="lottery-section">
+                    <h2>🎰 FUNDRAISER LOTTERY</h2>
+                    <p>Click the button below to randomly select a winner!</p>
+                    <button class="complete-fundraiser-btn" onclick="startLottery()">🎯 Complete Fundraiser & Pick Winner</button>
+                    <button class="reset-all-btn" onclick="startReplayLoop()" style="margin-top: 15px; background: linear-gradient(135deg, #34a853 0%, #2d9648 100%);">▶️ Start Replay Loop</button>
+                    <button class="reset-all-btn" onclick="stopLotteryLoop()" style="margin-top: 15px; background: linear-gradient(135deg, #fbbc04 0%, #f9ab00 100%);">⏸️ Stop Loop</button>
+                    <button class="reset-all-btn" onclick="clearWinnerData()" style="margin-top: 15px;">🗑️ Clear Winner Data</button>
+                    
+                    <div class="grid" id="lotteryGrid">
+                        <!-- Squares will be generated here -->
+                    </div>
+                    
+                    <div class="winner-announcement" id="winnerAnnouncement">
+                        🎉 WINNER: Square #<span id="winnerNumber"></span> 🎉
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Square Management -->
+            <div id="tab-management" class="tab-content">
+                <h2>⚙️ Square Management & Reset</h2>
+                <p>View all squares and reset individual squares or all squares at once</p>
+                
+                <button class="reset-all-btn" onclick="resetAllSquares()">🔄 Reset ALL Squares</button>
+                
+                <input type="text" class="search-box" id="searchBox" placeholder="🔍 Search by square number, buyer name, or status..." onkeyup="filterSquares()">
+                
+                <table class="square-table" id="squareTable">
+                    <thead>
+                        <tr>
+                            <th>Square #</th>
+                            <th>Status</th>
+                            <th>Buyer Name</th>
+                            <th>Reserved Until</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="squareTableBody">
+                        <!-- Rows will be generated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById('tab-' + tabName).classList.add('active');
+            event.target.classList.add('active');
+
+            // Load data for management tab
+            if (tabName === 'management') {
+                loadSquareManagement();
+            }
+        }
+
+        // Supabase Configuration - SAME AS MAIN PAGE
+        const SUPABASE_URL = 'https://osicsfticatmfdoknfem.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_tc4Lx-QzZuUlVgc4FPUQXw_JiFTaQnE';
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const PRICE_PER_SQUARE = 5.00;
+
+        async function loadPendingPayments() {
+            try {
+                // Get pending payments
+                const { data: pending, error: pendingError } = await supabaseClient
+                    .from('squares')
+                    .select('square_number, buyer_name, pending_since')
+                    .eq('payment_status', 'pending')
+                    .order('pending_since', { ascending: true });
+
+                if (pendingError) throw pendingError;
+
+                // Get sold squares
+                const { data: sold, error: soldError } = await supabaseClient
+                    .from('squares')
+                    .select('square_number, buyer_name, sold_at')
+                    .eq('sold', true)
+                    .order('sold_at', { ascending: false });
+
+                if (soldError) throw soldError;
+
+                // Update stats
+                document.getElementById('pendingCount').innerText = pending.length;
+                document.getElementById('soldCount').innerText = sold.length;
+                document.getElementById('availableCount').innerText = 50 - sold.length - pending.length;
+                document.getElementById('totalRevenue').innerText = (sold.length * PRICE_PER_SQUARE).toFixed(2);
+
+                // Group pending by buyer name
+                const pendingByBuyer = {};
+                pending.forEach(sq => {
+                    if (!pendingByBuyer[sq.buyer_name]) {
+                        pendingByBuyer[sq.buyer_name] = {
+                            name: sq.buyer_name,
+                            squares: [],
+                            time: sq.pending_since
+                        };
+                    }
+                    pendingByBuyer[sq.buyer_name].squares.push(sq.square_number);
+                });
+
+                // Display pending
+                const pendingContainer = document.getElementById('pendingContainer');
+                if (Object.keys(pendingByBuyer).length === 0) {
+                    pendingContainer.innerHTML = '<div class="no-pending">No pending payments</div>';
+                } else {
+                    pendingContainer.innerHTML = '';
+                    Object.values(pendingByBuyer).forEach(buyer => {
+                        const timeDiff = Math.floor((new Date() - new Date(buyer.time)) / 1000 / 60);
+                        const item = document.createElement('div');
+                        item.className = 'pending-item';
+                        item.innerHTML = `
+                            <div class="pending-info">
+                                <div class="buyer-name">${buyer.name}</div>
+                                <div class="squares-list">
+                                    Squares: ${buyer.squares.sort((a,b) => a - b).map(n => `<span class="square-badge">#${n}</span>`).join(' ')}
+                                </div>
+                                <div class="pending-time">⏱️ ${timeDiff} minute${timeDiff !== 1 ? 's' : ''} ago | Total: $${(buyer.squares.length * PRICE_PER_SQUARE).toFixed(2)}</div>
+                            </div>
+                            <div class="actions">
+                                <button class="btn btn-approve" onclick="approvePayment('${buyer.name}', ${JSON.stringify(buyer.squares)})">✅ Approve Payment</button>
+                                <button class="btn btn-reject" onclick="rejectPayment('${buyer.name}', ${JSON.stringify(buyer.squares)})">❌ Reject</button>
+                            </div>
+                        `;
+                        pendingContainer.appendChild(item);
+                    });
+                }
+
+                // Display sold
+                const soldContainer = document.getElementById('soldContainer');
+                if (sold.length === 0) {
+                    soldContainer.innerHTML = '<div class="no-pending">No sold squares yet</div>';
+                } else {
+                    // Group sold by buyer
+                    const soldByBuyer = {};
+                    sold.forEach(sq => {
+                        if (!soldByBuyer[sq.buyer_name]) {
+                            soldByBuyer[sq.buyer_name] = {
+                                name: sq.buyer_name,
+                                squares: [],
+                                time: sq.sold_at
+                            };
+                        }
+                        soldByBuyer[sq.buyer_name].squares.push(sq.square_number);
+                    });
+
+                    soldContainer.innerHTML = '';
+                    Object.values(soldByBuyer).forEach(buyer => {
+                        const item = document.createElement('div');
+                        item.className = 'sold-item';
+                        item.innerHTML = `
+                            <div>
+                                <div style="font-weight: bold; color: #5cb85c;">${buyer.name}</div>
+                                <div style="margin-top: 5px;">
+                                    ${buyer.squares.sort((a,b) => a - b).map(n => `<span class="square-badge">#${n}</span>`).join(' ')}
+                                </div>
+                            </div>
+                            <div style="color: #999; font-size: 0.9rem;">
+                                $${(buyer.squares.length * PRICE_PER_SQUARE).toFixed(2)}
+                            </div>
+                        `;
+                        soldContainer.appendChild(item);
+                    });
+                }
+
+            } catch (error) {
+                console.error('Error loading data:', error);
+                alert('Error loading data: ' + error.message);
+            }
+        }
+
+        async function approvePayment(buyerName, squares) {
+            if (!confirm(`Approve payment from ${buyerName} for ${squares.length} square(s)?`)) {
+                return;
+            }
+
+            try {
+                for (const squareNum of squares) {
+                    const { error } = await supabaseClient
+                        .from('squares')
+                        .update({
+                            sold: true,
+                            sold_at: new Date().toISOString(),
+                            payment_status: 'approved'
+                        })
+                        .eq('square_number', squareNum)
+                        .eq('buyer_name', buyerName);
+
+                    if (error) throw error;
+                }
+
+                alert(`✅ Payment approved! ${buyerName}'s squares are now marked as sold.`);
+                loadPendingPayments();
+
+            } catch (error) {
+                console.error('Error approving payment:', error);
+                alert('Error approving payment: ' + error.message);
+            }
+        }
+
+        async function rejectPayment(buyerName, squares) {
+            if (!confirm(`Reject payment from ${buyerName}? This will release their ${squares.length} square(s) back to available.`)) {
+                return;
+            }
+
+            try {
+                for (const squareNum of squares) {
+                    const { error } = await supabaseClient
+                        .from('squares')
+                        .update({
+                            sold: false,
+                            payment_status: null,
+                            buyer_name: null,
+                            pending_since: null,
+                            reserved_until: null,
+                            reserved_by: null
+                        })
+                        .eq('square_number', squareNum)
+                        .eq('buyer_name', buyerName);
+
+                    if (error) throw error;
+                }
+
+                alert(`❌ Payment rejected. Squares released back to available.`);
+                loadPendingPayments();
+
+            } catch (error) {
+                console.error('Error rejecting payment:', error);
+                alert('Error rejecting payment: ' + error.message);
+            }
+        }
+
+        // Subscribe to real-time changes
+        supabaseClient
+            .channel('admin_updates')
+            .on('postgres_changes',
+                { event: '*', schema: 'public', table: 'squares' },
+                () => {
+                    loadPendingPayments();
+                }
+            )
+            .subscribe();
+
+        // Initialize lottery grid
+        function initializeLotteryGrid() {
+            const grid = document.getElementById('lotteryGrid');
+            grid.innerHTML = '';
+            for (let i = 1; i <= 50; i++) {
+                const square = document.createElement('div');
+                square.className = 'square';
+                square.id = `lottery-square-${i}`;
+                square.textContent = i;
+                grid.appendChild(square);
+            }
+        }
+
+        // Lottery animation
+        let lotteryInterval = null;
+        let isLotteryRunning = false;
+        let lotteryChannel = null;
+
+        async function startLottery() {
+            if (isLotteryRunning) return;
+
+            // Confirm action
+            if (!confirm('Are you ready to select the winner? This will broadcast the lottery animation to all viewers in real-time!')) {
+                return;
+            }
+
+            isLotteryRunning = true;
+            const button = document.querySelector('.complete-fundraiser-btn');
+            button.disabled = true;
+            button.textContent = '🎰 Drawing Winner...';
+
+            // Hide previous winner announcement
+            const announcement = document.getElementById('winnerAnnouncement');
+            announcement.classList.remove('show');
+
+            // Clear all highlights
+            document.querySelectorAll('.square').forEach(sq => {
+                sq.classList.remove('highlight', 'winner');
+            });
+
+            // Get all sold squares to pick from
+            const { data: soldSquares, error } = await supabaseClient
+                .from('squares')
+                .select('square_number')
+                .eq('sold', true);
+
+            if (error || !soldSquares || soldSquares.length === 0) {
+                alert('No sold squares found! Cannot complete fundraiser.');
+                button.disabled = false;
+                button.textContent = '🎯 Complete Fundraiser & Pick Winner';
+                isLotteryRunning = false;
+                return;
+            }
+
+            const soldNumbers = soldSquares.map(s => s.square_number);
+            
+            // Create broadcast channel
+            lotteryChannel = supabaseClient.channel('lottery_broadcast');
+            await lotteryChannel.subscribe();
+            
+            // Broadcast lottery start
+            await lotteryChannel.send({
+                type: 'broadcast',
+                event: 'lottery_start',
+                payload: {}
+            });
+            
+            // Phase 1: 10 squares flashing fast (3 seconds)
+            startPhase1(soldNumbers);
+        }
+
+        function startPhase1(soldNumbers) {
+            let speed = 80;
+            let elapsed = 0;
+            const duration = 3000;
+
+            lotteryInterval = setInterval(async () => {
+                const highlightSquares = [];
+                
+                // Highlight 10 random squares
+                for (let i = 0; i < 10; i++) {
+                    const randomSquare = soldNumbers[Math.floor(Math.random() * soldNumbers.length)];
+                    if (!highlightSquares.includes(randomSquare)) {
+                        highlightSquares.push(randomSquare);
+                    }
+                }
+                
+                // Local admin animation
+                document.querySelectorAll('.square.highlight').forEach(sq => sq.classList.remove('highlight'));
+                highlightSquares.forEach(num => {
+                    const squareEl = document.getElementById(`lottery-square-${num}`);
+                    if (squareEl) squareEl.classList.add('highlight');
+                });
+                
+                // Broadcast to all viewers
+                await lotteryChannel.send({
+                    type: 'broadcast',
+                    event: 'lottery_highlight',
+                    payload: { squares: highlightSquares }
+                });
+
+                elapsed += speed;
+                
+                if (elapsed >= duration) {
+                    clearInterval(lotteryInterval);
+                    startPhase2(soldNumbers);
+                }
+            }, speed);
+        }
+
+        function startPhase2(soldNumbers) {
+            // Phase 2: 5 squares flashing slower (3 seconds)
+            let speed = 150;
+            let elapsed = 0;
+            const duration = 3000;
+
+            lotteryInterval = setInterval(async () => {
+                const highlightSquares = [];
+                
+                // Highlight 5 random squares
+                for (let i = 0; i < 5; i++) {
+                    const randomSquare = soldNumbers[Math.floor(Math.random() * soldNumbers.length)];
+                    if (!highlightSquares.includes(randomSquare)) {
+                        highlightSquares.push(randomSquare);
+                    }
+                }
+                
+                // Local admin animation
+                document.querySelectorAll('.square.highlight').forEach(sq => sq.classList.remove('highlight'));
+                highlightSquares.forEach(num => {
+                    const squareEl = document.getElementById(`lottery-square-${num}`);
+                    if (squareEl) squareEl.classList.add('highlight');
+                });
+                
+                // Broadcast to all viewers
+                await lotteryChannel.send({
+                    type: 'broadcast',
+                    event: 'lottery_highlight',
+                    payload: { squares: highlightSquares }
+                });
+
+                elapsed += speed;
+                
+                if (elapsed >= duration) {
+                    clearInterval(lotteryInterval);
+                    startPhase3(soldNumbers);
+                }
+            }, speed);
+        }
+
+        function startPhase3(soldNumbers) {
+            // Phase 3: 2 squares flashing even slower (3 seconds)
+            let speed = 300;
+            let elapsed = 0;
+            const duration = 3000;
+
+            lotteryInterval = setInterval(async () => {
+                const highlightSquares = [];
+                
+                // Highlight 2 random squares
+                for (let i = 0; i < 2; i++) {
+                    const randomSquare = soldNumbers[Math.floor(Math.random() * soldNumbers.length)];
+                    if (!highlightSquares.includes(randomSquare)) {
+                        highlightSquares.push(randomSquare);
+                    }
+                }
+                
+                // Local admin animation
+                document.querySelectorAll('.square.highlight').forEach(sq => sq.classList.remove('highlight'));
+                highlightSquares.forEach(num => {
+                    const squareEl = document.getElementById(`lottery-square-${num}`);
+                    if (squareEl) squareEl.classList.add('highlight');
+                });
+                
+                // Broadcast to all viewers
+                await lotteryChannel.send({
+                    type: 'broadcast',
+                    event: 'lottery_highlight',
+                    payload: { squares: highlightSquares }
+                });
+
+                elapsed += speed;
+                
+                if (elapsed >= duration) {
+                    clearInterval(lotteryInterval);
+                    startPhase4(soldNumbers);
+                }
+            }, speed);
+        }
+
+        function startPhase4(soldNumbers) {
+            // Phase 4: 1 square flashing very slow (3 seconds)
+            let speed = 500;
+            let elapsed = 0;
+            const duration = 3000;
+
+            lotteryInterval = setInterval(async () => {
+                // Highlight 1 random square
+                const randomSquare = soldNumbers[Math.floor(Math.random() * soldNumbers.length)];
+                const highlightSquares = [randomSquare];
+                
+                // Local admin animation
+                document.querySelectorAll('.square.highlight').forEach(sq => sq.classList.remove('highlight'));
+                const squareEl = document.getElementById(`lottery-square-${randomSquare}`);
+                if (squareEl) squareEl.classList.add('highlight');
+                
+                // Broadcast to all viewers
+                await lotteryChannel.send({
+                    type: 'broadcast',
+                    event: 'lottery_highlight',
+                    payload: { squares: highlightSquares }
+                });
+
+                elapsed += speed;
+                
+                if (elapsed >= duration) {
+                    clearInterval(lotteryInterval);
+                    selectWinner(soldNumbers);
+                }
+            }, speed);
+        }
+
+        async function selectWinner(soldNumbers) {
+            // Final: Select and reveal winner
+            // Clear all highlights
+            document.querySelectorAll('.square').forEach(sq => {
+                sq.classList.remove('highlight');
+            });
+
+            // Pick random winner
+            const winnerSquare = soldNumbers[Math.floor(Math.random() * soldNumbers.length)];
+            const winnerEl = document.getElementById(`lottery-square-${winnerSquare}`);
+            
+            // Get winner's name
+            const { data: winnerData } = await supabaseClient
+                .from('squares')
+                .select('buyer_name')
+                .eq('square_number', winnerSquare)
+                .maybeSingle(); // Use maybeSingle to handle no results
+            
+            const winnerName = winnerData?.buyer_name || 'Unknown';
+            
+            // Save winner to database (create/update a settings row)
+            await supabaseClient
+                .from('squares')
+                .upsert({ 
+                    square_number: 0, // Special row for storing winner
+                    buyer_name: `WINNER:${winnerSquare}:${winnerName}`,
+                    sold: true,
+                    sold_at: new Date().toISOString()
+                });
+            
+            // Broadcast winner to all viewers
+            await lotteryChannel.send({
+                type: 'broadcast',
+                event: 'lottery_winner',
+                payload: { winner: winnerSquare }
+            });
+            
+            // Dramatic reveal
+            setTimeout(() => {
+                winnerEl.classList.add('winner');
+                
+                // Show announcement
+                document.getElementById('winnerNumber').textContent = winnerSquare;
+                document.getElementById('winnerAnnouncement').classList.add('show');
+
+                // Re-enable button
+                const button = document.querySelector('.complete-fundraiser-btn');
+                button.disabled = false;
+                button.textContent = '🎯 Complete Fundraiser & Pick Winner';
+                isLotteryRunning = false;
+
+                // Scroll to winner
+                winnerEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Unsubscribe from channel
+                setTimeout(() => {
+                    if (lotteryChannel) {
+                        lotteryChannel.unsubscribe();
+                    }
+                }, 6000);
+            }, 500);
+        }
+
+        // Reset lottery draw
+        async function stopLotteryLoop() {
+            if (!confirm('⏸️ Stop the lottery loop animation? (Winner data will be preserved)')) {
+                return;
+            }
+
+            try {
+                // Broadcast stop to all viewers
+                const stopChannel = supabaseClient.channel('lottery_stop_broadcast');
+                await stopChannel.subscribe();
+                await stopChannel.send({
+                    type: 'broadcast',
+                    event: 'lottery_stop',
+                    payload: {}
+                });
+                setTimeout(() => stopChannel.unsubscribe(), 1000);
+
+                alert('⏸️ Lottery loop stopped on all devices!');
+
+            } catch (error) {
+                console.error('Error stopping lottery:', error);
+                alert('Error stopping lottery: ' + error.message);
+            }
+        }
+
+        // Start replay loop
+        async function startReplayLoop() {
+            try {
+                // Check if winner exists
+                const { data, error } = await supabaseClient
+                    .from('squares')
+                    .select('buyer_name')
+                    .eq('square_number', 0)
+                    .maybeSingle(); // Use maybeSingle to handle no results
+
+                if (!data || !data.buyer_name || !data.buyer_name.startsWith('WINNER:')) {
+                    alert('❌ No winner found! Please complete the fundraiser first.');
+                    return;
+                }
+
+                // Broadcast replay start to all viewers
+                const replayChannel = supabaseClient.channel('lottery_replay_broadcast');
+                await replayChannel.subscribe();
+                await replayChannel.send({
+                    type: 'broadcast',
+                    event: 'lottery_replay',
+                    payload: {}
+                });
+                setTimeout(() => replayChannel.unsubscribe(), 1000);
+
+                alert('▶️ Lottery replay started on all devices!');
+
+            } catch (error) {
+                console.error('Error starting replay:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Clear winner data completely
+        async function clearWinnerData() {
+            if (!confirm('🗑️ Permanently delete the winner data? This cannot be undone!')) {
+                return;
+            }
+
+            try {
+                // Clear winner from database
+                await supabaseClient
+                    .from('squares')
+                    .delete()
+                    .eq('square_number', 0);
+
+                // Stop all loops first
+                const stopChannel = supabaseClient.channel('lottery_stop_broadcast');
+                await stopChannel.subscribe();
+                await stopChannel.send({
+                    type: 'broadcast',
+                    event: 'lottery_stop',
+                    payload: {}
+                });
+                setTimeout(() => stopChannel.unsubscribe(), 1000);
+
+                alert('✅ Winner data cleared!');
+                
+                // Clear local display
+                document.getElementById('winnerAnnouncement').classList.remove('show');
+                document.querySelectorAll('.square').forEach(sq => {
+                    sq.classList.remove('winner', 'highlight');
+                });
+
+            } catch (error) {
+                console.error('Error clearing winner:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Square Management Functions
+        async function loadSquareManagement() {
+            try {
+                const { data: squares, error } = await supabaseClient
+                    .from('squares')
+                    .select('*')
+                    .order('square_number', { ascending: true });
+
+                if (error) throw error;
+
+                const tbody = document.getElementById('squareTableBody');
+                tbody.innerHTML = '';
+
+                squares.forEach(square => {
+                    const row = document.createElement('tr');
+                    
+                    // Determine status
+                    let status = 'Available';
+                    let statusClass = 'status-available';
+                    
+                    if (square.sold) {
+                        status = 'Sold';
+                        statusClass = 'status-sold';
+                    } else if (square.payment_status === 'pending') {
+                        status = 'Pending Payment';
+                        statusClass = 'status-pending';
+                    } else if (square.reserved_until && new Date(square.reserved_until) > new Date()) {
+                        status = 'Reserved';
+                        statusClass = 'status-pending';
+                    }
+
+                    // Format reserved until time
+                    let reservedText = '-';
+                    if (square.reserved_until) {
+                        const reservedDate = new Date(square.reserved_until);
+                        if (reservedDate > new Date()) {
+                            const diff = Math.ceil((reservedDate - new Date()) / 1000);
+                            reservedText = `${diff}s remaining`;
+                        }
+                    }
+
+                    row.innerHTML = `
+                        <td><strong>#${square.square_number}</strong></td>
+                        <td><span class="status-badge ${statusClass}">${status}</span></td>
+                        <td>${square.buyer_name || '-'}</td>
+                        <td>${reservedText}</td>
+                        <td>
+                            <button class="reset-btn" onclick="resetSquare(${square.square_number}, '${square.buyer_name || ''}')">🔄 Reset</button>
+                        </td>
+                    `;
+                    
+                    row.dataset.squareNumber = square.square_number;
+                    row.dataset.status = status.toLowerCase();
+                    row.dataset.buyerName = square.buyer_name || '';
+                    
+                    tbody.appendChild(row);
+                });
+
+            } catch (error) {
+                console.error('Error loading square management:', error);
+                alert('Error loading squares: ' + error.message);
+            }
+        }
+
+        // Filter squares by search
+        function filterSquares() {
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+            const rows = document.querySelectorAll('#squareTableBody tr');
+            
+            rows.forEach(row => {
+                const squareNum = row.dataset.squareNumber;
+                const status = row.dataset.status;
+                const buyerName = row.dataset.buyerName.toLowerCase();
+                
+                if (squareNum.includes(searchTerm) || 
+                    status.includes(searchTerm) || 
+                    buyerName.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Reset individual square
+        async function resetSquare(squareNumber, buyerName) {
+            const displayName = buyerName || `Square #${squareNumber}`;
+            
+            if (!confirm(`Reset ${displayName}? This will clear all data for this square and make it available again.`)) {
+                return;
+            }
+
+            try {
+                const { error } = await supabaseClient
+                    .from('squares')
+                    .update({
+                        sold: false,
+                        sold_at: null,
+                        reserved_until: null,
+                        reserved_by: null,
+                        buyer_name: null,
+                        payment_status: null,
+                        pending_since: null,
+                        transaction_id: null
+                    })
+                    .eq('square_number', squareNumber);
+
+                if (error) throw error;
+
+                alert(`✅ Square #${squareNumber} has been reset!`);
+                loadSquareManagement();
+                loadPendingPayments(); // Refresh stats
+
+            } catch (error) {
+                console.error('Error resetting square:', error);
+                alert('Error resetting square: ' + error.message);
+            }
+        }
+
+        // Reset ALL squares
+        async function resetAllSquares() {
+            if (!confirm('⚠️ WARNING: Reset ALL 50 squares? This will clear all sold, pending, and reserved data!')) {
+                return;
+            }
+
+            if (!confirm('Are you absolutely sure? This action cannot be undone!')) {
+                return;
+            }
+
+            try {
+                const { error } = await supabaseClient
+                    .from('squares')
+                    .update({
+                        sold: false,
+                        sold_at: null,
+                        reserved_until: null,
+                        reserved_by: null,
+                        buyer_name: null,
+                        payment_status: null,
+                        pending_since: null,
+                        transaction_id: null
+                    })
+                    .neq('square_number', 0); // Update all rows
+
+                if (error) throw error;
+
+                alert('✅ All squares have been reset!');
+                loadSquareManagement();
+                loadPendingPayments(); // Refresh stats
+
+            } catch (error) {
+                console.error('Error resetting all squares:', error);
+                alert('Error resetting: ' + error.message);
+            }
+        }
+
+        // Load on page load
+        loadPendingPayments();
+        initializeLotteryGrid();
+
+        // Auto-refresh every 30 seconds
+        setInterval(loadPendingPayments, 30000);
+    </script>
+</body>
+</html>
