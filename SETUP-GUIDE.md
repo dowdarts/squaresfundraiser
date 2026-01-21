@@ -42,7 +42,19 @@
    const SUPABASE_ANON_KEY = 'eyJhbG...your-key-here';
    ```
 
-### Step 6: Test It!
+### Step 6: Add Your Background Image
+1. Save your promotional background image as `background.jpg` in the same folder as `index.html`
+2. The image should showcase your prize (e.g., darts shirts)
+3. The grid will automatically overlay on top of the image
+
+### Step 7: Configure eTransfer Email (Admin Only)
+1. Run the `add-settings-table.sql` migration in Supabase SQL Editor
+2. Open `admin.html` in your browser
+3. Go to the "Settings" tab
+4. Enter your eTransfer email address where payments should be sent
+5. Click "Save Settings"
+
+### Step 8: Test It!
 1. Open `index.html` in a browser
 2. Click a square
 3. Click "Confirm & Pay"
