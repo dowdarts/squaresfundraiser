@@ -735,6 +735,10 @@
             <label for="buyerName" class="buyer-label">Your Name:</label>
             <input type="text" id="buyerName" class="buyer-input" placeholder="Enter your name" autocomplete="name" />
         </div>
+        <div style="margin: 15px 0;">
+            <label for="buyerEmail" class="buyer-label">Your Email:</label>
+            <input type="email" id="buyerEmail" class="buyer-input" placeholder="Enter your email" autocomplete="email" />
+        </div>
         <p style="font-size: 0.85rem; color: #333; margin: 10px 0;">By clicking Confirm, your squares will be reserved. Please send your e-transfer immediately. Your squares will be marked as sold once payment is confirmed by our admin.</p>
         <button onclick="processPayment()">Confirm & Reserve</button>
         <button style="background:#ccc;" onclick="cancelCheckout()">Cancel</button>
@@ -1224,16 +1228,30 @@
 
         async function processPayment() {
             try {
-                // Get buyer name from input
+                // Get buyer name and email from inputs
                 const buyerName = document.getElementById('buyerName').value.trim();
+                const buyerEmail = document.getElementById('buyerEmail').value.trim();
                 
                 if (!buyerName) {
                     alert('Please enter your name before completing the purchase.');
                     return;
                 }
                 
-                // Clear the name input BEFORE replacing modal content
+                if (!buyerEmail) {
+                    alert('Please enter your email address to receive confirmation.');
+                    return;
+                }
+                
+                // Basic email validation
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(buyerEmail)) {
+                    alert('Please enter a valid email address.');
+                    return;
+                }
+                
+                // Clear the inputs BEFORE replacing modal content
                 document.getElementById('buyerName').value = '';
+                document.getElementById('buyerEmail').value = '';
                 
                 clearInterval(reservationTimer);
                 
@@ -1250,6 +1268,7 @@
                             sold_at: null,
                             reserved_until: null,
                             buyer_name: buyerName,
+                            buyer_email: buyerEmail,
                             pending_since: new Date().toISOString()
                         })
                         .eq('square_number', num);
