@@ -762,6 +762,19 @@
             }
 
             try {
+                // Get buyer email from the first square
+                const { data: squareData, error: fetchError } = await supabaseClient
+                    .from('squares')
+                    .select('buyer_email')
+                    .eq('square_number', squares[0])
+                    .eq('buyer_name', buyerName)
+                    .single();
+
+                if (fetchError) throw fetchError;
+
+                const buyerEmail = squareData?.buyer_email;
+
+                // Update all squares to sold
                 for (const squareNum of squares) {
                     const { error } = await supabaseClient
                         .from('squares')
@@ -776,13 +789,49 @@
                     if (error) throw error;
                 }
 
-                alert(`✅ Payment approved! ${buyerName}'s squares are now marked as sold.`);
+                // Send confirmation email if email exists
+                if (buyerEmail) {
+                    try {
+                        await sendConfirmationEmail(buyerEmail, buyerName, squares);
+                    } catch (emailError) {
+                        console.error('Email send failed (non-critical):', emailError);
+                        // Don't fail the approval if email fails
+                    }
+                }
+
+                alert(`✅ Payment approved! ${buyerName}'s squares are now marked as sold.${buyerEmail ? ' Confirmation email sent.' : ''}`);
                 loadPendingPayments();
 
             } catch (error) {
                 console.error('Error approving payment:', error);
                 alert('Error approving payment: ' + error.message);
             }
+        }
+
+        // Send confirmation email via Supabase Edge Function
+        async function sendConfirmationEmail(email, name, squares) {
+            const squaresList = squares.sort((a, b) => a - b).join(', ');
+            
+            const response = await fetch(SUPABASE_URL + '/functions/v1/send-confirmation-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+                },
+                body: JSON.stringify({
+                    buyerEmail: email,
+                    buyerName: name,
+                    squares: squaresList,
+                    eventName: 'AADS 50 Square Fundraiser'
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to send email');
+            }
+
+            return await response.json();
         }
 
         async function rejectPayment(buyerName, squares) {
