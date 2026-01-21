@@ -966,7 +966,9 @@
         }
 
         function updateRemainingCount() {
-            remainingSpan.innerText = 50 - soldSquares.size;
+            // Count only truly sold and pending squares (not temporarily selected ones)
+            const totalUnavailable = soldSquares.size + pendingSquares.size;
+            remainingSpan.innerText = 50 - totalUnavailable;
         }
 
         async function selectSquare(num) {
