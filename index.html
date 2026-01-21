@@ -1259,7 +1259,23 @@
             }
         }
 
-        function showEtransferInfo(buyerName, squaresList, totalAmount) {
+        async function showEtransferInfo(buyerName, squaresList, totalAmount) {
+            // Fetch the eTransfer email from settings
+            let etransferEmail = 'YOUR_EMAIL@example.com'; // Default fallback
+            try {
+                const { data, error } = await supabaseClient
+                    .from('settings')
+                    .select('etransfer_email')
+                    .eq('id', 1)
+                    .single();
+
+                if (data && data.etransfer_email) {
+                    etransferEmail = data.etransfer_email;
+                }
+            } catch (error) {
+                console.error('Error loading eTransfer email:', error);
+            }
+
             const modalContent = `
                 <h3 style="color: var(--primary-orange); margin-top: 0;">✅ Squares Reserved!</h3>
                 
@@ -1268,7 +1284,7 @@
                     
                     <div class="etransfer-detail">
                         <div class="etransfer-label">Recipient Email:</div>
-                        <div class="etransfer-value">YOUR_EMAIL@example.com</div>
+                        <div class="etransfer-value">${etransferEmail}</div>
                     </div>
                     
                     <div class="etransfer-detail">

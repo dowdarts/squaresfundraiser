@@ -521,6 +521,7 @@
                 <button class="tab-btn active" onclick="switchTab('payments')">💰 Payment Approvals</button>
                 <button class="tab-btn" onclick="switchTab('lottery')">🎰 Lottery</button>
                 <button class="tab-btn" onclick="switchTab('management')">⚙️ Square Management</button>
+                <button class="tab-btn" onclick="switchTab('settings')">⚙️ Settings</button>
             </div>
 
             <!-- Tab 1: Payment Approvals -->
@@ -586,6 +587,30 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- Tab 4: Settings -->
+            <div id="tab-settings" class="tab-content">
+                <h2>⚙️ Fundraiser Settings</h2>
+                <p>Configure settings for your fundraiser</p>
+                
+                <div class="pending-list">
+                    <h3>📧 E-Transfer Payment Information</h3>
+                    <p style="color: #999; margin-bottom: 20px;">This email will be displayed to users when they reserve squares</p>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold;">Recipient Email Address:</label>
+                        <input type="email" id="etransferEmail" 
+                               style="width: 100%; padding: 12px; border-radius: 5px; border: 2px solid #555; background: #333; color: white; font-size: 1rem;"
+                               placeholder="fundraiser@example.com">
+                    </div>
+                    
+                    <button class="btn btn-approve" onclick="saveSettings()" style="padding: 15px 30px; font-size: 1.1rem;">
+                        💾 Save Settings
+                    </button>
+                    
+                    <div id="settingsSaveMessage" style="margin-top: 15px; padding: 10px; border-radius: 5px; display: none;"></div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -607,6 +632,10 @@
             // Load data for management tab
             if (tabName === 'management') {
                 loadSquareManagement();
+            }
+            // Load settings when settings tab is opened
+            if (tabName === 'settings') {
+                loadSettings();
             }
         }
 
@@ -1332,6 +1361,76 @@
             } catch (error) {
                 console.error('Error resetting all squares:', error);
                 alert('Error resetting: ' + error.message);
+            }
+        }
+
+        // Load settings from database
+        async function loadSettings() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('settings')
+                    .select('etransfer_email')
+                    .eq('id', 1)
+                    .single();
+
+                if (error && error.code !== 'PGRST116') { // Ignore "not found" error
+                    throw error;
+                }
+
+                if (data && data.etransfer_email) {
+                    document.getElementById('etransferEmail').value = data.etransfer_email;
+                }
+            } catch (error) {
+                console.error('Error loading settings:', error);
+            }
+        }
+
+        // Save settings to database
+        async function saveSettings() {
+            const email = document.getElementById('etransferEmail').value.trim();
+            const messageDiv = document.getElementById('settingsSaveMessage');
+
+            if (!email) {
+                messageDiv.style.display = 'block';
+                messageDiv.style.background = '#d9534f';
+                messageDiv.textContent = '❌ Please enter an email address';
+                return;
+            }
+
+            // Basic email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                messageDiv.style.display = 'block';
+                messageDiv.style.background = '#d9534f';
+                messageDiv.textContent = '❌ Please enter a valid email address';
+                return;
+            }
+
+            try {
+                const { error } = await supabaseClient
+                    .from('settings')
+                    .upsert({
+                        id: 1,
+                        etransfer_email: email,
+                        updated_at: new Date().toISOString()
+                    });
+
+                if (error) throw error;
+
+                messageDiv.style.display = 'block';
+                messageDiv.style.background = '#5cb85c';
+                messageDiv.textContent = '✅ Settings saved successfully!';
+
+                // Hide message after 3 seconds
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 3000);
+
+            } catch (error) {
+                console.error('Error saving settings:', error);
+                messageDiv.style.display = 'block';
+                messageDiv.style.background = '#d9534f';
+                messageDiv.textContent = '❌ Error saving settings: ' + error.message;
             }
         }
 
