@@ -45,20 +45,16 @@
             margin-bottom: 20px;
         }
 
-        /* Background Image Container */
-        .background-wrapper {
-            position: relative;
-            width: 100%;
+        /* Poster Image */
+        .poster-image {
             max-width: 900px;
-            margin: 0 auto 30px;
-            padding: 20px;
-            background-image: url('background.jpg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
+            width: 100%;
+            height: auto;
             border-radius: 15px;
             border: 3px solid var(--primary-orange);
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+            margin-bottom: 30px;
+            display: block;
         }
 
         /* The Grid */
@@ -68,29 +64,19 @@
             gap: 8px;
             max-width: 600px;
             width: 100%;
-            background: rgba(0, 0, 0, 0.3);
+            background: var(--dark-grey);
             padding: 15px;
             border-radius: 12px;
             border: 2px solid var(--primary-orange);
             box-sizing: border-box;
-            backdrop-filter: blur(2px);
-            position: relative;
-            z-index: 10;
         }
 
         @media (min-width: 600px) {
             .grid-container { 
-                grid-template-columns: repeat(7, 1fr);
-                max-width: 700px;
-                gap: 6px;
-                padding: 20px;
-            }
-        }
-
-        @media (min-width: 800px) {
-            .grid-container { 
+                grid-template-columns: repeat(10, 1fr);
                 max-width: 800px;
-                gap: 8px;
+                gap: 10px;
+                padding: 20px;
             }
         }
 
@@ -681,9 +667,9 @@
         ENTRY: $5.00 PER SQUARE
     </div>
 
-    <div class="background-wrapper">
-        <div class="grid-container" id="dartGrid">
-        </div>
+    <img src="background.jpg" alt="Win a Custom AADS Shirt - 50 Squares Available" class="poster-image">
+
+    <div class="grid-container" id="dartGrid">
     </div>
 
     <div class="color-legend">
