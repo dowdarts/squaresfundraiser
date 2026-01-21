@@ -115,3 +115,7 @@ If you don't want to set up Edge Functions, you can manually email buyers:
 - **Resend Free Tier**: 100 emails/day, 3,000/month - FREE
 - **Resend Pro**: $20/month for 50,000 emails
 - **Supabase Edge Functions**: Included in free tier (up to 500K function invocations/month)
+
+-- Drop the old trigger and function
+DROP TRIGGER IF EXISTS on_square_approved ON squares;
+DROP FUNCTION IF EXISTS send_confirmation_email_trigger();
