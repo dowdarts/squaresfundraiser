@@ -459,6 +459,7 @@
             <div class="user-avatar" id="userAvatar" onclick="toggleUserDropdown()"></div>
             <div class="user-dropdown" id="userDropdown">
                 <div class="user-dropdown-item" onclick="goToAdmin()">My Dashboard</div>
+                <div class="user-dropdown-item" onclick="goToAccount()">My Account</div>
                 <div class="user-dropdown-item" onclick="signOut()">Sign Out</div>
             </div>
         </div>
@@ -586,12 +587,15 @@
                     .from('fundraisers')
                     .select(`
                         *,
-                        organizers (full_name, organization_name)
+                        profiles (full_name, organization_name)
                     `)
                     .eq('is_active', true)
                     .order('created_at', { ascending: false });
 
-                if (error) throw error;
+                if (error) {
+                    console.error('Supabase error details:', error);
+                    throw error;
+                }
 
                 document.getElementById('loading').style.display = 'none';
 
@@ -623,7 +627,11 @@
                     total_raised: 0
                 };
 
-                const organizerName = fundraiser.organizers.organization_name || fundraiser.organizers.full_name;
+                // Handle organizer name with null checks
+                let organizerName = 'Organizer';
+                if (fundraiser.profiles) {
+                    organizerName = fundraiser.profiles.organization_name || fundraiser.profiles.full_name || 'Organizer';
+                }
 
                 const card = document.createElement('div');
                 card.className = 'fundraiser-card';
@@ -668,6 +676,10 @@
 
         function goToAdmin() {
             window.location.href = 'admin.html';
+        }
+
+        function goToAccount() {
+            window.location.href = 'account.html';
         }
 
         // Modal functions

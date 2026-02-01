@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account - Square Fund</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary-orange: #f39200;
+            --dark-grey: #2d2d2d;
+            --background-dark: #1a1a1a;
+            --card-bg: #2d2d2d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-dark);
+            color: white;
+            min-height: 100vh;
+        }
+
+        /* Navigation */
+        nav {
+            background-color: var(--dark-grey);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .nav-logo img {
+            height: 50px;
+            width: auto;
+            padding: 5px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .nav-btn {
+            padding: 0.6rem 1.5rem;
+            background-color: var(--primary-orange);
+            color: black;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .nav-btn.secondary {
+            background-color: transparent;
+            border: 2px solid var(--primary-orange);
+            color: var(--primary-orange);
+        }
+
+        /* Container */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-header p {
+            color: #999;
+        }
+
+        /* Account Cards */
+        .account-section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary-orange);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: white;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--background-dark);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+        }
+
+        .form-helper {
+            font-size: 0.85rem;
+            color: #999;
+            margin-top: 0.25rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-orange);
+            color: black;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(243, 146, 0, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-danger {
+            background-color: #d9534f;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c9302c;
+        }
+
+        .message {
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .message.success {
+            background-color: rgba(92, 184, 92, 0.2);
+            color: #5cb85c;
+            border: 1px solid #5cb85c;
+        }
+
+        .message.error {
+            background-color: rgba(217, 83, 79, 0.2);
+            color: #d9534f;
+            border: 1px solid #d9534f;
+        }
+
+        .current-value {
+            color: var(--primary-orange);
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background-color: rgba(243, 146, 0, 0.1);
+            border-radius: 5px;
+        }
+
+        .divider {
+            height: 1px;
+            background-color: rgba(255, 255, 255, 0.1);
+            margin: 2rem 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-logo" onclick="goToLobby()">
+            <img src="square-fund-logo.png" alt="Square Fund">
+        </div>
+        <div class="nav-buttons">
+            <button class="nav-btn secondary" onclick="goToAdmin()">My Dashboard</button>
+            <button class="nav-btn secondary" onclick="signOut()">Sign Out</button>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container">
+        <div class="page-header">
+            <h1>My Account</h1>
+            <p>Manage your profile and account settings</p>
+        </div>
+
+        <!-- Profile Information -->
+        <div class="account-section">
+            <div class="section-title">👤 Profile Information</div>
+            
+            <div id="profileMessage" class="message"></div>
+
+            <form id="profileForm" onsubmit="updateProfile(event)">
+                <div class="form-group">
+                    <label>First Name</label>
+                    <input type="text" id="firstName" placeholder="Enter your first name">
+                </div>
+
+                <div class="form-group">
+                    <label>Last Name</label>
+                    <input type="text" id="lastName" placeholder="Enter your last name">
+                </div>
+
+                <div class="form-group">
+                    <label>Organization Name (Optional)</label>
+                    <input type="text" id="organizationName" placeholder="Enter organization name">
+                    <div class="form-helper">This will be displayed as the organizer for your fundraisers</div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="profileBtn">Update Profile</button>
+            </form>
+        </div>
+
+        <!-- Email Address -->
+        <div class="account-section">
+            <div class="section-title">📧 Email Address</div>
+            
+            <div class="current-value">
+                Current Email: <span id="currentEmail"></span>
+            </div>
+
+            <div id="emailMessage" class="message"></div>
+
+            <form id="emailForm" onsubmit="updateEmail(event)">
+                <div class="form-group">
+                    <label>New Email Address</label>
+                    <input type="email" id="newEmail" required placeholder="Enter new email address">
+                    <div class="form-helper">You will receive a confirmation email at the new address</div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="emailBtn">Update Email</button>
+            </form>
+        </div>
+
+        <!-- Change Password -->
+        <div class="account-section">
+            <div class="section-title">🔒 Change Password</div>
+            
+            <div id="passwordMessage" class="message"></div>
+
+            <form id="passwordForm" onsubmit="updatePassword(event)">
+                <div class="form-group">
+                    <label>New Password</label>
+                    <input type="password" id="newPassword" required minlength="6" placeholder="Enter new password">
+                    <div class="form-helper">Minimum 6 characters</div>
+                </div>
+
+                <div class="form-group">
+                    <label>Confirm New Password</label>
+                    <input type="password" id="confirmPassword" required minlength="6" placeholder="Confirm new password">
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="passwordBtn">Change Password</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://xsmrquoivqrxalxjqxdw.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzbXJxdW9pdnFyeGFseGpxeGR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2NTkxNzUsImV4cCI6MjA4NTIzNTE3NX0.uJAVb4k61Oxja15NUuiC8_TtxhzWtAC-dlh-nepTKdU';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let currentUser = null;
+
+        // Initialize
+        async function init() {
+            await checkAuth();
+            await loadUserProfile();
+        }
+
+        // Check authentication
+        async function checkAuth() {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            
+            if (!user) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            currentUser = user;
+            document.getElementById('currentEmail').textContent = user.email;
+        }
+
+        // Load user profile
+        async function loadUserProfile() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', currentUser.id)
+                    .single();
+
+                if (error && error.code !== 'PGRST116') throw error;
+
+                if (data) {
+                    document.getElementById('firstName').value = data.first_name || '';
+                    document.getElementById('lastName').value = data.last_name || '';
+                    document.getElementById('organizationName').value = data.organization_name || '';
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            }
+        }
+
+        // Update profile
+        async function updateProfile(event) {
+            event.preventDefault();
+            
+            const btn = document.getElementById('profileBtn');
+            const messageDiv = document.getElementById('profileMessage');
+            
+            btn.disabled = true;
+            btn.textContent = 'Updating...';
+            messageDiv.className = 'message';
+
+            try {
+                const profileData = {
+                    id: currentUser.id,
+                    first_name: document.getElementById('firstName').value,
+                    last_name: document.getElementById('lastName').value,
+                    organization_name: document.getElementById('organizationName').value,
+                    full_name: `${document.getElementById('firstName').value} ${document.getElementById('lastName').value}`.trim()
+                };
+
+                const { error } = await supabaseClient
+                    .from('profiles')
+                    .upsert(profileData);
+
+                if (error) throw error;
+
+                messageDiv.className = 'message success show';
+                messageDiv.textContent = '✅ Profile updated successfully!';
+                
+                setTimeout(() => {
+                    messageDiv.className = 'message';
+                }, 3000);
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                messageDiv.className = 'message error show';
+                messageDiv.textContent = '❌ Error updating profile: ' + error.message;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Update Profile';
+            }
+        }
+
+        // Update email
+        async function updateEmail(event) {
+            event.preventDefault();
+            
+            const btn = document.getElementById('emailBtn');
+            const messageDiv = document.getElementById('emailMessage');
+            const newEmail = document.getElementById('newEmail').value;
+            
+            btn.disabled = true;
+            btn.textContent = 'Updating...';
+            messageDiv.className = 'message';
+
+            try {
+                const { error } = await supabaseClient.auth.updateUser({
+                    email: newEmail
+                });
+
+                if (error) throw error;
+
+                messageDiv.className = 'message success show';
+                messageDiv.textContent = '✅ Confirmation email sent! Please check your new email address to confirm the change.';
+                document.getElementById('newEmail').value = '';
+            } catch (error) {
+                console.error('Error updating email:', error);
+                messageDiv.className = 'message error show';
+                messageDiv.textContent = '❌ Error updating email: ' + error.message;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Update Email';
+            }
+        }
+
+        // Update password
+        async function updatePassword(event) {
+            event.preventDefault();
+            
+            const btn = document.getElementById('passwordBtn');
+            const messageDiv = document.getElementById('passwordMessage');
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            messageDiv.className = 'message';
+
+            if (newPassword !== confirmPassword) {
+                messageDiv.className = 'message error show';
+                messageDiv.textContent = '❌ Passwords do not match!';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Updating...';
+
+            try {
+                const { error } = await supabaseClient.auth.updateUser({
+                    password: newPassword
+                });
+
+                if (error) throw error;
+
+                messageDiv.className = 'message success show';
+                messageDiv.textContent = '✅ Password changed successfully!';
+                document.getElementById('passwordForm').reset();
+                
+                setTimeout(() => {
+                    messageDiv.className = 'message';
+                }, 3000);
+            } catch (error) {
+                console.error('Error updating password:', error);
+                messageDiv.className = 'message error show';
+                messageDiv.textContent = '❌ Error updating password: ' + error.message;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Change Password';
+            }
+        }
+
+        // Navigation
+        function goToLobby() {
+            window.location.href = 'index.html';
+        }
+
+        function goToAdmin() {
+            window.location.href = 'admin.html';
+        }
+
+        async function signOut() {
+            await supabaseClient.auth.signOut();
+            window.location.href = 'index.html';
+        }
+
+        // Initialize on page load
+        init();
+    </script>
+</body>
+</html>

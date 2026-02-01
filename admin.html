@@ -565,6 +565,7 @@
         </div>
         <div class="nav-buttons">
             <span class="user-email" id="userEmail"></span>
+            <button class="nav-btn secondary" onclick="goToAccount()">My Account</button>
             <button class="nav-btn secondary" onclick="signOut()">Sign Out</button>
         </div>
     </nav>
@@ -1299,6 +1300,10 @@
         // Go to lobby
         function goToLobby() {
             window.location.href = 'index.html';
+        }
+
+        function goToAccount() {
+            window.location.href = 'account.html';
         }
 
         // View public fundraiser page
