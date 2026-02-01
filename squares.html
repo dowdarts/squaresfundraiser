@@ -1,0 +1,1851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Square Fund - Sports Fundraising Made Easy</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary-orange: #f39200;
+            --dark-grey: #2d2d2d;
+            --light-grey: #e0e0e0;
+            --sold-red: #d9534f;
+            --selected-green: #5cb85c;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a1a1a;
+            color: white;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header-logo {
+            max-width: 300px;
+            margin: 0 auto 20px;
+            display: block;
+            padding: 15px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .fundraiser-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .logo {
+            max-width: 250px;
+            margin-bottom: 10px;
+        }
+
+        .promo-banner {
+            background: var(--primary-orange);
+            color: black;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(243, 146, 0, 0.3);
+            margin-bottom: 20px;
+        }
+
+        /* Poster Image */
+        .poster-image {
+            max-width: 900px;
+            width: 100%;
+            height: auto;
+            border-radius: 15px;
+            border: 3px solid var(--primary-orange);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+            margin-bottom: 30px;
+            display: block;
+        }
+
+        /* The Grid */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            max-width: 600px;
+            width: 100%;
+            background: var(--dark-grey);
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid var(--primary-orange);
+            box-sizing: border-box;
+        }
+
+        @media (min-width: 600px) {
+            .grid-container { 
+                grid-template-columns: repeat(10, 1fr);
+                max-width: 800px;
+                gap: 10px;
+                padding: 20px;
+            }
+        }
+
+        .square {
+            aspect-ratio: 1 / 1;
+            background: #ffd700;
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+            border: 1px solid #cca300;
+            position: relative;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .square:hover:not(.sold):not(.pending) {
+            background: #ffed4e;
+            transform: scale(1.05);
+            border-color: var(--primary-orange);
+        }
+
+        .square.selected {
+            background: var(--selected-green);
+            color: white;
+            box-shadow: 0 0 10px var(--selected-green);
+        }
+
+        .square.pending {
+            background: #d9534f;
+            color: white;
+            cursor: not-allowed;
+            box-shadow: 0 0 10px #d9534f;
+        }
+
+        .square.sold {
+            background: #666;
+            color: #999;
+            cursor: not-allowed;
+            opacity: 0.7;
+            text-decoration: line-through;
+            flex-direction: column;
+            font-size: 0.7rem;
+            padding: 4px;
+            line-height: 1.2;
+        }
+
+        .square.sold .buyer-name {
+            font-size: 0.6rem;
+            text-decoration: none;
+            margin-top: 2px;
+            color: #fff;
+            text-align: center;
+            word-break: break-word;
+        }
+
+        /* Lottery Animation Styles */
+        .square.lottery-highlight {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%) !important;
+            color: #000 !important;
+            transform: scale(1.2);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 1), 0 0 15px rgba(255, 215, 0, 0.8) !important;
+            border: 4px solid #ffd700 !important;
+            z-index: 10;
+            transition: all 0.2s ease-out;
+            font-weight: 900;
+            animation: lotteryFlash 0.3s ease-in-out;
+        }
+
+        @keyframes lotteryFlash {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            }
+            50% {
+                transform: scale(1.25);
+                box-shadow: 0 0 40px rgba(255, 215, 0, 1);
+            }
+            100% {
+                transform: scale(1.2);
+                box-shadow: 0 0 30px rgba(255, 215, 0, 1);
+            }
+        }
+
+        .square.lottery-winner {
+            color: white !important;
+            transform: scale(1.2);
+            border: 4px solid #ff6b6b;
+            z-index: 20;
+            animation: winnerPulseColor 2.5s infinite;
+        }
+
+        @keyframes winnerPulseColor {
+            0% { 
+                background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+                box-shadow: 0 0 35px rgba(255, 107, 107, 1);
+                transform: scale(1.2);
+                border-color: #ff6b6b;
+            }
+            20% { 
+                background: linear-gradient(135deg, #4285f4 0%, #357ae8 100%);
+                box-shadow: 0 0 40px rgba(66, 133, 244, 1);
+                transform: scale(1.25);
+                border-color: #4285f4;
+            }
+            40% { 
+                background: linear-gradient(135deg, #34a853 0%, #2d9648 100%);
+                box-shadow: 0 0 40px rgba(52, 168, 83, 1);
+                transform: scale(1.2);
+                border-color: #34a853;
+            }
+            60% { 
+                background: linear-gradient(135deg, #fbbc04 0%, #f9ab00 100%);
+                box-shadow: 0 0 40px rgba(251, 188, 4, 1);
+                transform: scale(1.25);
+                border-color: #fbbc04;
+            }
+            80% { 
+                background: linear-gradient(135deg, #ff8c00 0%, #ff7700 100%);
+                box-shadow: 0 0 40px rgba(255, 140, 0, 1);
+                transform: scale(1.2);
+                border-color: #ff8c00;
+            }
+            100% { 
+                background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+                box-shadow: 0 0 35px rgba(255, 107, 107, 1);
+                transform: scale(1.2);
+                border-color: #ff6b6b;
+            }
+        }
+
+        .lottery-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 9999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lottery-overlay.active {
+            display: flex;
+        }
+
+        .lottery-message {
+            color: white;
+            font-size: 3rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px rgba(243, 146, 0, 0.8);
+        }
+
+        .lottery-winner-announcement {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+            padding: 40px 60px;
+            border-radius: 20px;
+            font-size: 4rem;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(255, 107, 107, 0.8);
+            animation: slideInScale 0.6s ease-out;
+        }
+
+        @keyframes slideInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.5) translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .lottery-message {
+                font-size: 2rem;
+            }
+            .lottery-winner-announcement {
+                font-size: 2.5rem;
+                padding: 30px 40px;
+            }
+        }
+
+        /* Confetti Animation */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #f0f;
+            position: absolute;
+            animation: confetti-fall linear infinite;
+            z-index: 10000;
+        }
+
+        @keyframes confetti-fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Winner Celebration Popup */
+        .winner-celebration {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10001;
+            text-align: center;
+        }
+
+        .winner-celebration.show {
+            display: block;
+            animation: celebrationZoom 0.8s ease-out;
+        }
+
+        @keyframes celebrationZoom {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.3) rotate(-10deg);
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.1) rotate(5deg);
+            }
+            100% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1) rotate(0deg);
+            }
+        }
+
+        .winner-square-display {
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            border: 8px solid #fff;
+            border-radius: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 20px 60px rgba(255, 215, 0, 0.8);
+            animation: winnerSquarePulse 2s infinite;
+            position: relative;
+        }
+
+        @keyframes winnerSquarePulse {
+            0%, 100% {
+                box-shadow: 0 20px 60px rgba(255, 215, 0, 0.8);
+                transform: scale(1);
+            }
+            50% {
+                box-shadow: 0 25px 80px rgba(255, 215, 0, 1);
+                transform: scale(1.05);
+            }
+        }
+
+        .winner-square-display::before {
+            content: '🏆';
+            position: absolute;
+            top: -60px;
+            font-size: 5rem;
+            animation: trophyBounce 1s infinite;
+        }
+
+        @keyframes trophyBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .winner-number {
+            font-size: 8rem;
+            font-weight: 900;
+            color: #000;
+            text-shadow: 3px 3px 0 rgba(255, 255, 255, 0.5);
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+
+        .winner-label {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #000;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .winner-name {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #ff6b6b;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .winner-square-display {
+                width: 250px;
+                height: 250px;
+            }
+            .winner-square-display::before {
+                font-size: 3.5rem;
+                top: -50px;
+            }
+            .winner-number {
+                font-size: 6rem;
+            }
+            .winner-label {
+                font-size: 1.2rem;
+            }
+            .winner-name {
+                font-size: 2rem;
+            }
+        }
+
+        /* Payment Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            color: black;
+            padding: 30px;
+            border-radius: 15px;
+            z-index: 100;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 99;
+        }
+
+        button {
+            background: var(--primary-orange);
+            border: none;
+            padding: 12px 25px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+            text-transform: uppercase;
+        }
+
+        button:hover { background: #d68100; }
+
+        .cart-summary {
+            margin-top: 20px;
+            background: var(--dark-grey);
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .cart-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .cart-item {
+            background: var(--selected-green);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .remove-btn {
+            background: rgba(255,255,255,0.3);
+            border: none;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            padding: 0;
+            margin: 0;
+            font-size: 14px;
+            line-height: 1;
+        }
+
+        .remove-btn:hover {
+            background: rgba(255,255,255,0.5);
+        }
+
+        .checkout-btn {
+            width: 100%;
+            font-size: 1.2rem;
+            padding: 15px;
+            background: var(--primary-orange);
+        }
+
+        .checkout-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .timer-display {
+            font-size: 2rem;
+            color: #ff0000;
+            font-weight: bold;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .stats {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            color: var(--primary-orange);
+        }
+
+        .admin-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.9);
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #ff0000;
+        }
+
+        .admin-btn {
+            background: #ff0000;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .admin-btn:hover {
+            background: #cc0000;
+        }
+
+        .buyer-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            color: #000;
+            background: white;
+        }
+
+        .buyer-input:focus {
+            outline: 2px solid var(--primary-orange);
+            border-color: var(--primary-orange);
+        }
+
+        .buyer-label {
+            display: block;
+            margin-bottom: 5px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .etransfer-info {
+            background: #fff;
+            color: #000;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 2px solid var(--primary-orange);
+        }
+
+        .etransfer-info h3 {
+            color: var(--primary-orange);
+            margin-top: 0;
+        }
+
+        .etransfer-detail {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .etransfer-label {
+            font-weight: bold;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .etransfer-value {
+            font-size: 1.2rem;
+            color: #000;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .important-note {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            color: #856404;
+        }
+
+        .color-legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+            padding: 20px;
+            background: var(--dark-grey);
+            border-radius: 8px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+        .legend-box {
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+            border: 1px solid #333;
+        }
+
+        .legend-box.available {
+            background: #ffd700;
+        }
+
+        .legend-box.selected {
+            background: var(--selected-green);
+        }
+
+        .legend-box.reserved {
+            background: #d9534f;
+        }
+
+        .legend-box.sold {
+            background: #666;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <img src="square-fund-logo.png" alt="Square Fund" class="header-logo">
+        <div class="fundraiser-title" id="fundraiserTitle"></div>
+        <p id="fundraiserDescription"></p>
+    </header>
+
+    <div class="promo-banner">
+        Loading...
+    </div>
+
+    <img src="" alt="Fundraiser Banner" class="poster-image" style="display: none;">
+
+    <div class="grid-container" id="dartGrid">
+    </div>
+
+    <div class="color-legend">
+        <div class="legend-item">
+            <div class="legend-box available"></div>
+            <span>Available to Purchase</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-box selected"></div>
+            <span>Selected & Reserved (2 min)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-box reserved"></div>
+            <span>Reserved by Others</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-box sold"></div>
+            <span>Sold</span>
+        </div>
+    </div>
+
+    <div class="cart-summary" id="cartSummary" style="display:none;">
+        <h3>Selected Squares</h3>
+        <div class="cart-items" id="cartItems"></div>
+        <div style="text-align: center; margin-top: 15px;">
+            <div style="font-size: 1.5rem; margin-bottom: 10px;">
+                Total: <span style="color: var(--primary-orange);">$<span id="totalPrice">0.00</span></span>
+            </div>
+            <div class="timer-display" id="timerDisplay" style="display:none;"></div>
+            <button class="checkout-btn" id="checkoutBtn" onclick="openCheckout()">Proceed to Checkout</button>
+        </div>
+    </div>
+
+    <div class="stats">
+        Squares Remaining: <span id="remainingCount">50</span> / 50
+    </div>
+
+    <!-- Lottery Overlay -->
+    <div class="lottery-overlay" id="lotteryOverlay">
+        <div class="lottery-message" id="lotteryMessage">🎰 DRAWING WINNER...</div>
+        <div class="lottery-winner-announcement" id="lotteryWinnerAnnouncement" style="display:none;">
+            🎉 WINNER: Square #<span id="lotteryWinnerNumber"></span> 🎉
+        </div>
+    </div>
+
+    <!-- Winner Celebration Popup -->
+    <div class="winner-celebration" id="winnerCelebration">
+        <div class="winner-square-display">
+            <div class="winner-label">🎊 WINNER 🎊</div>
+            <div class="winner-number" id="celebrationNumber">#00</div>
+            <div class="winner-name" id="celebrationName">Winner Name</div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="modal" id="paymentModal">
+        <h3>Secure Your Squares</h3>
+        <p id="modalText"></p>
+        <div class="timer-display" id="modalTimer"></div>
+        <p><strong>Total: $<span id="modalAmount">0.00</span></strong></p>
+        <hr>
+        <div style="margin: 15px 0;">
+            <label for="buyerName" class="buyer-label">Your Name:</label>
+            <input type="text" id="buyerName" class="buyer-input" placeholder="Enter your name" autocomplete="name" />
+        </div>
+        <div style="margin: 15px 0;">
+            <label for="buyerEmail" class="buyer-label">Your Email:</label>
+            <input type="email" id="buyerEmail" class="buyer-input" placeholder="Enter your email" autocomplete="email" />
+        </div>
+        <p style="font-size: 0.85rem; color: #333; margin: 10px 0;">By clicking Confirm, your squares will be reserved. Please send your e-transfer immediately. Your squares will be marked as sold once payment is confirmed by our admin.</p>
+        <button onclick="processPayment()">Confirm & Reserve</button>
+        <button style="background:#ccc;" onclick="cancelCheckout()">Cancel</button>
+    </div>
+
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://xsmrquoivqrxalxjqxdw.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzbXJxdW9pdnFyeGFseGpxeGR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2NTkxNzUsImV4cCI6MjA4NTIzNTE3NX0.uJAVb4k61Oxja15NUuiC8_TtxhzWtAC-dlh-nepTKdU';
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Get fundraiser ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const fundraiserId = urlParams.get('id');
+        
+        // Fundraiser details (loaded dynamically)
+        let fundraiserData = null;
+
+        const grid = document.getElementById('dartGrid');
+        const modal = document.getElementById('paymentModal');
+        const overlay = document.getElementById('overlay');
+        const modalText = document.getElementById('modalText');
+        const remainingSpan = document.getElementById('remainingCount');
+        const cartSummary = document.getElementById('cartSummary');
+        const cartItems = document.getElementById('cartItems');
+        const totalPriceSpan = document.getElementById('totalPrice');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const modalTimer = document.getElementById('modalTimer');
+        const checkoutBtn = document.getElementById('checkoutBtn');
+        
+        // Generate or retrieve session ID
+        let sessionId = localStorage.getItem('aads_session_id');
+        if (!sessionId) {
+            sessionId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('aads_session_id', sessionId);
+        }
+        
+        let selectedSquares = new Set();
+        let soldSquares = new Set();
+        let pendingSquares = new Map(); // Track squares with timers
+        let myReservedSquares = new Set(); // Track squares I reserved
+        let reservationTimer = null;
+        let timeLeft = 0;
+        const SELECTION_LOCK_DURATION = 120; // 2 minutes in seconds for initial selection
+        const CHECKOUT_LOCK_DURATION = 120; // 2 minutes in seconds for checkout (changed from 5)
+        let PRICE_PER_SQUARE = 5.00; // Default, will be loaded from fundraiser
+
+        // Load fundraiser details
+        async function loadFundraiser() {
+            if (!fundraiserId) {
+                alert('No fundraiser specified! Please access this page from a valid fundraiser link.');
+                window.location.href = 'index.html';
+                return false;
+            }
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('fundraisers')
+                    .select('*')
+                    .eq('id', fundraiserId)
+                    .eq('is_active', true)
+                    .single();
+
+                if (error) throw error;
+
+                if (!data) {
+                    alert('Fundraiser not found or is no longer active.');
+                    window.location.href = 'index.html';
+                    return false;
+                }
+
+                fundraiserData = data;
+                PRICE_PER_SQUARE = parseFloat(data.square_price);
+
+                // Update page title and header elements
+                document.title = data.title || 'Square Fundraiser';
+                
+                // Update fundraiser title in header
+                const titleElement = document.getElementById('fundraiserTitle');
+                if (titleElement) {
+                    titleElement.textContent = data.title || 'Square Fundraiser';
+                }
+                
+                // Update fundraiser description in header
+                const descriptionElement = document.getElementById('fundraiserDescription');
+                if (descriptionElement) {
+                    descriptionElement.textContent = data.description || '';
+                }
+                
+                // Update banner/poster image
+                const posterImg = document.querySelector('.poster-image');
+                if (posterImg) {
+                    if (data.banner_url) {
+                        posterImg.src = data.banner_url;
+                        posterImg.alt = data.title;
+                        posterImg.style.display = 'block'; // Show the image
+                    } else {
+                        // Hide poster if no banner_url provided
+                        posterImg.style.display = 'none';
+                    }
+                }
+
+                // Update promo banner with price
+                const promoBanner = document.querySelector('.promo-banner');
+                if (promoBanner) {
+                    promoBanner.textContent = `ENTRY: $${PRICE_PER_SQUARE.toFixed(2)} PER SQUARE`;
+                }
+
+                return true;
+            } catch (error) {
+                console.error('Error loading fundraiser:', error);
+                alert('Error loading fundraiser details. Please try again later.');
+                return false;
+            }
+        }
+
+        // Load sold squares from Supabase
+        async function loadSoldSquares() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('squares')
+                    .select('square_number, sold, reserved_until, reserved_by, buyer_name')
+                    .eq('fundraiser_id', fundraiserId)
+                    .eq('sold', true);
+
+                if (error) throw error;
+
+                soldSquares.clear();
+                data.forEach(row => {
+                    soldSquares.add(row.square_number);
+                    const sq = document.getElementById(`sq-${row.square_number}`);
+                    if (sq) {
+                        sq.classList.remove('pending', 'selected');
+                        sq.classList.add('sold');
+                        // Display buyer name on the square
+                        if (row.buyer_name) {
+                            sq.innerHTML = `<span>${row.square_number}</span><div class="buyer-name">${row.buyer_name}</div>`;
+                        }
+                    }
+                });
+
+                // Load pending squares
+                await loadPendingSquares();
+                updateRemainingCount();
+            } catch (error) {
+                console.error('Error loading squares:', error);
+            }
+        }
+
+        // Load squares that are currently reserved
+        async function loadPendingSquares() {
+            try {
+                const now = new Date().toISOString();
+                
+                // Get squares with active time-based reservations
+                const { data: reservedData, error: reservedError } = await supabaseClient
+                    .from('squares')
+                    .select('square_number, reserved_until, reserved_by')
+                    .eq('fundraiser_id', fundraiserId)
+                    .eq('sold', false)
+                    .not('reserved_until', 'is', null)
+                    .gt('reserved_until', now);
+
+                if (reservedError) throw reservedError;
+
+                // Get squares with pending payment status
+                const { data: pendingData, error: pendingError } = await supabaseClient
+                    .from('squares')
+                    .select('square_number, buyer_name')
+                    .eq('fundraiser_id', fundraiserId)
+                    .eq('sold', false)
+                    .eq('payment_status', 'pending');
+
+                if (pendingError) throw pendingError;
+
+                myReservedSquares.clear();
+                
+                // Handle time-based reservations
+                if (reservedData) {
+                    reservedData.forEach(row => {
+                        const sq = document.getElementById(`sq-${row.square_number}`);
+                        
+                        if (row.reserved_by === sessionId) {
+                            // This is MY reservation - show as selected/green
+                            myReservedSquares.add(row.square_number);
+                            selectedSquares.add(row.square_number);
+                            if (sq) {
+                                sq.classList.remove('pending');
+                                sq.classList.add('selected');
+                            }
+                        } else {
+                            // Someone else's reservation - show as pending/red
+                            if (sq) {
+                                sq.classList.remove('selected');
+                                sq.classList.add('pending');
+                            }
+                        }
+                        pendingSquares.set(row.square_number, new Date(row.reserved_until));
+                    });
+                }
+                
+                // Handle pending payment squares - ALWAYS show as red to everyone
+                if (pendingData) {
+                    pendingData.forEach(row => {
+                        const sq = document.getElementById(`sq-${row.square_number}`);
+                        pendingSquares.set(row.square_number, new Date(Date.now() + 999999999)); // Far future date
+                        if (sq) {
+                            sq.classList.remove('selected');
+                            sq.classList.add('pending');
+                        }
+                    });
+                }
+                
+                // Update cart if we have reserved squares
+                if (myReservedSquares.size > 0) {
+                    updateCart();
+                }
+            } catch (error) {
+                console.error('Error loading pending squares:', error);
+            }
+        }
+
+        // Initialize the 50 squares
+        async function initGrid() {
+            // Load fundraiser first
+            const loaded = await loadFundraiser();
+            if (!loaded) return;
+
+            for (let i = 1; i <= 50; i++) {
+                const square = document.createElement('div');
+                square.classList.add('square');
+                square.innerText = i;
+                square.id = `sq-${i}`;
+                square.dataset.number = i; // Add data-number attribute for lottery
+                square.onclick = () => selectSquare(i);
+                grid.appendChild(square);
+            }
+            loadSoldSquares();
+        }
+
+        // Real-time subscription for square updates
+        function subscribeToSquareChanges() {
+            supabaseClient
+                .channel('squares_changes')
+                .on('postgres_changes', 
+                    { event: '*', schema: 'public', table: 'squares' },
+                    (payload) => {
+                        const num = payload.new.square_number;
+                        const sq = document.getElementById(`sq-${num}`);
+                        
+                        if (payload.new.sold) {
+                            soldSquares.add(num);
+                            pendingSquares.delete(num);
+                            myReservedSquares.delete(num);
+                            selectedSquares.delete(num);
+                            if (sq) {
+                                sq.classList.remove('selected', 'pending');
+                                sq.classList.add('sold');
+                                // Display buyer name on the square
+                                if (payload.new.buyer_name) {
+                                    sq.innerHTML = `<span>${num}</span><div class="buyer-name">${payload.new.buyer_name}</div>`;
+                                }
+                            }
+                        } else if (payload.new.payment_status === 'pending') {
+                            // Square is awaiting payment approval - show as reserved (red) to everyone
+                            pendingSquares.set(num, new Date(Date.now() + 999999999));
+                            if (sq) {
+                                sq.classList.remove('selected');
+                                sq.classList.add('pending');
+                            }
+                        } else if (payload.new.reserved_until) {
+                            const reservedUntil = new Date(payload.new.reserved_until);
+                            if (reservedUntil > new Date()) {
+                                pendingSquares.set(num, reservedUntil);
+                                // Check if this is MY reservation
+                                if (payload.new.reserved_by === sessionId) {
+                                    myReservedSquares.add(num);
+                                    selectedSquares.add(num);
+                                    if (sq) {
+                                        sq.classList.remove('pending');
+                                        sq.classList.add('selected');
+                                    }
+                                } else {
+                                    // Someone else's reservation
+                                    if (sq) {
+                                        sq.classList.remove('selected');
+                                        sq.classList.add('pending');
+                                    }
+                                }
+                            }
+                        } else if (!payload.new.reserved_until && !payload.new.payment_status) {
+                            // Reservation was released and no pending payment
+                            pendingSquares.delete(num);
+                            myReservedSquares.delete(num);
+                            selectedSquares.delete(num);
+                            if (sq) {
+                                sq.classList.remove('selected', 'pending');
+                                // Reset to just the number if not sold
+                                if (!payload.new.sold) {
+                                    sq.innerHTML = num;
+                                }
+                            }
+                        }
+                        
+                        updateRemainingCount();
+                        updateCart();
+                        checkWinnerStatus();
+                    }
+                )
+                .subscribe();
+        }
+
+        function updateRemainingCount() {
+            // Count only truly sold and pending squares (not temporarily selected ones)
+            const totalUnavailable = soldSquares.size + pendingSquares.size;
+            remainingSpan.innerText = 50 - totalUnavailable;
+        }
+
+        async function selectSquare(num) {
+            if (soldSquares.has(num)) {
+                alert("This square has been sold!");
+                return;
+            }
+            
+            // Check if reserved by someone else OR awaiting payment approval
+            if (pendingSquares.has(num) && !myReservedSquares.has(num)) {
+                alert("This square is currently reserved or awaiting payment approval. Please choose another!");
+                return;
+            }
+            
+            const sq = document.getElementById(`sq-${num}`);
+            
+            if (selectedSquares.has(num)) {
+                // Deselect and IMMEDIATELY release - no timer, instant availability
+                selectedSquares.delete(num);
+                myReservedSquares.delete(num);
+                sq.classList.remove('selected');
+                
+                // Release to database immediately so others can grab it
+                await releaseSquareReservation(num);
+            } else {
+                // Select and reserve for 2 minutes
+                const success = await reserveSquare(num, SELECTION_LOCK_DURATION);
+                if (success) {
+                    selectedSquares.add(num);
+                    sq.classList.add('selected');
+                } else {
+                    alert("This square was just reserved by someone else!");
+                }
+            }
+            
+            updateCart();
+        }
+
+        async function reserveSquare(num, duration) {
+            try {
+                const reserveUntil = new Date(Date.now() + duration * 1000).toISOString();
+                
+                const { data, error } = await supabaseClient
+                    .from('squares')
+                    .update({ 
+                        reserved_until: reserveUntil,
+                        reserved_by: sessionId
+                    })
+                    .eq('fundraiser_id', fundraiserId)
+                    .eq('square_number', num)
+                    .select();
+                
+                if (error || !data || data.length === 0) {
+                    console.error('Error reserving square:', error);
+                    return false;
+                }
+                
+                pendingSquares.set(num, new Date(reserveUntil));
+                myReservedSquares.add(num);
+                return true;
+            } catch (error) {
+                console.error('Error:', error);
+                return false;
+            }
+        }
+
+        async function releaseSquareReservation(num) {
+            try {
+                // Immediately release to database - no timer, instant availability for others
+                const { error } = await supabaseClient
+                    .from('squares')
+                    .update({ 
+                        reserved_until: null,
+                        reserved_by: null
+                    })
+                    .eq('fundraiser_id', fundraiserId)
+                    .eq('square_number', num)
+                    .eq('sold', false);
+                
+                if (error) {
+                    console.error('Error releasing reservation:', error);
+                    return;
+                }
+                
+                // Clear local tracking
+                pendingSquares.delete(num);
+                myReservedSquares.delete(num);
+                selectedSquares.delete(num);
+                
+                const sq = document.getElementById(`sq-${num}`);
+                if (sq) {
+                    sq.classList.remove('pending', 'selected');
+                }
+            } catch (error) {
+                console.error('Error releasing reservation:', error);
+            }
+        }
+
+        function updateCart() {
+            if (selectedSquares.size === 0) {
+                cartSummary.style.display = 'none';
+                return;
+            }
+            
+            cartSummary.style.display = 'block';
+            cartItems.innerHTML = '';
+            
+            selectedSquares.forEach(num => {
+                const item = document.createElement('div');
+                item.className = 'cart-item';
+                item.innerHTML = `
+                    Square #${num}
+                    <button class="remove-btn" onclick="removeFromCart(${num})">×</button>
+                `;
+                cartItems.appendChild(item);
+            });
+            
+            const total = selectedSquares.size * PRICE_PER_SQUARE;
+            totalPriceSpan.innerText = total.toFixed(2);
+        }
+
+        async function removeFromCart(num) {
+            // Immediately deselect and release - instant availability for others
+            selectedSquares.delete(num);
+            myReservedSquares.delete(num);
+            
+            const sq = document.getElementById(`sq-${num}`);
+            if (sq) sq.classList.remove('selected');
+            
+            await releaseSquareReservation(num);
+            updateCart();
+        }
+
+        async function openCheckout() {
+            if (selectedSquares.size === 0) return;
+            
+            // Extend reservation to 5 minutes for checkout
+            try {
+                const reserveUntil = new Date(Date.now() + CHECKOUT_LOCK_DURATION * 1000).toISOString();
+                const squaresToReserve = Array.from(selectedSquares);
+                
+                for (const num of squaresToReserve) {
+                    // Extend the reservation to 5 minutes
+                    const success = await reserveSquare(num, CHECKOUT_LOCK_DURATION);
+                    
+                    if (!success) {
+                        alert(`Square #${num} was lost. Please try again.`);
+                        selectedSquares.delete(num);
+                        const sq = document.getElementById(`sq-${num}`);
+                        if (sq) sq.classList.remove('selected');
+                    } else {
+                        const sq = document.getElementById(`sq-${num}`);
+                        if (sq) {
+                            sq.classList.remove('selected');
+                            sq.classList.add('pending');
+                        }
+                    }
+                }
+                
+                if (selectedSquares.size === 0) {
+                    updateCart();
+                    alert('All selected squares were lost. Please try again.');
+                    return;
+                }
+                
+                // Start 5-minute timer and show modal
+                startReservationTimer();
+                showCheckoutModal();
+                
+            } catch (error) {
+                console.error('Error extending reservations:', error);
+                alert('Database error: ' + error.message);
+            }
+        }
+
+        function startReservationTimer() {
+            timeLeft = CHECKOUT_LOCK_DURATION;
+            updateTimerDisplay();
+            
+            reservationTimer = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                
+                if (timeLeft <= 0) {
+                    clearInterval(reservationTimer);
+                    releaseReservations();
+                    alert("Time expired! Your reservation has been released.");
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(timeLeft / 60);
+            const secs = timeLeft % 60;
+            const timeString = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            
+            timerDisplay.innerHTML = `Time Remaining: ${timeString}`;
+            modalTimer.innerHTML = timeString;
+            
+            if (timeLeft <= 30) {
+                timerDisplay.style.color = '#ff0000';
+                modalTimer.style.color = '#ff0000';
+            }
+        }
+
+        function showCheckoutModal() {
+            const squareList = Array.from(selectedSquares).join(', ');
+            const total = selectedSquares.size * PRICE_PER_SQUARE;
+            
+            modalText.innerHTML = `You are purchasing ${selectedSquares.size} square(s):<br><strong>#${squareList}</strong>`;
+            document.getElementById('modalAmount').innerText = total.toFixed(2);
+            
+            modal.style.display = 'block';
+            overlay.style.display = 'block';
+            timerDisplay.style.display = 'block';
+        }
+
+        async function releaseReservations() {
+            clearInterval(reservationTimer);
+            
+            try {
+                for (const num of selectedSquares) {
+                    await supabaseClient
+                        .from('squares')
+                        .update({ 
+                            reserved_until: null,
+                            reserved_by: null
+                        })
+                        .eq('fundraiser_id', fundraiserId)
+                        .eq('square_number', num)
+                        .eq('sold', false);
+                    
+                    const sq = document.getElementById(`sq-${num}`);
+                    if (sq) sq.classList.remove('pending', 'selected');
+                    pendingSquares.delete(num);
+                    myReservedSquares.delete(num);
+                }
+            } catch (error) {
+                console.error('Error releasing reservations:', error);
+            }
+            
+            selectedSquares.clear();
+            updateCart();
+            closeModal();
+        }
+
+        function cancelCheckout() {
+            releaseReservations();
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+            overlay.style.display = 'none';
+            timerDisplay.style.display = 'none';
+        }
+
+        async function processPayment() {
+            try {
+                // Get buyer name and email from inputs
+                const buyerName = document.getElementById('buyerName').value.trim();
+                const buyerEmail = document.getElementById('buyerEmail').value.trim();
+                
+                if (!buyerName) {
+                    alert('Please enter your name before completing the purchase.');
+                    return;
+                }
+                
+                if (!buyerEmail) {
+                    alert('Please enter your email address to receive confirmation.');
+                    return;
+                }
+                
+                // Basic email validation
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(buyerEmail)) {
+                    alert('Please enter a valid email address.');
+                    return;
+                }
+                
+                // Clear the inputs BEFORE replacing modal content
+                document.getElementById('buyerName').value = '';
+                document.getElementById('buyerEmail').value = '';
+                
+                clearInterval(reservationTimer);
+                
+                const totalAmount = (selectedSquares.size * PRICE_PER_SQUARE).toFixed(2);
+                const squaresList = Array.from(selectedSquares).sort((a,b) => a - b).join(', ');
+                
+                // Update Supabase - mark squares as pending payment (NOT sold yet)
+                for (const num of selectedSquares) {
+                    const { data, error } = await supabaseClient
+                        .from('squares')
+                        .update({ 
+                            sold: false, // NOT sold yet - awaiting admin approval
+                            payment_status: 'pending',
+                            sold_at: null,
+                            reserved_until: null,
+                            buyer_name: buyerName,
+                            buyer_email: buyerEmail,
+                            pending_since: new Date().toISOString()
+                        })
+                        .eq('fundraiser_id', fundraiserId)
+                        .eq('square_number', num);
+
+                    if (error) {
+                        console.error(`Error updating square ${num}:`, error);
+                        continue;
+                    }
+                }
+
+                // Show e-transfer information
+                showEtransferInfo(buyerName, squaresList, totalAmount);
+                
+                selectedSquares.clear();
+                myReservedSquares.clear();
+                pendingSquares.clear();
+                updateRemainingCount();
+                updateCart();
+
+            } catch (error) {
+                console.error('Error processing payment:', error);
+                alert('An error occurred. Please try again.');
+            }
+        }
+
+        async function showEtransferInfo(buyerName, squaresList, totalAmount) {
+            // Fetch the eTransfer email from settings
+            let etransferEmail = 'YOUR_EMAIL@example.com'; // Default fallback
+            try {
+                const { data, error } = await supabaseClient
+                    .from('settings')
+                    .select('etransfer_email')
+                    .eq('id', 1)
+                    .single();
+
+                if (data && data.etransfer_email) {
+                    etransferEmail = data.etransfer_email;
+                }
+            } catch (error) {
+                console.error('Error loading eTransfer email:', error);
+            }
+
+            const modalContent = `
+                <h3 style="color: var(--primary-orange); margin-top: 0;">✅ Squares Reserved!</h3>
+                
+                <div class="etransfer-info">
+                    <h3>📧 Send E-Transfer To:</h3>
+                    
+                    <div class="etransfer-detail">
+                        <div class="etransfer-label">Recipient Email:</div>
+                        <div class="etransfer-value">${etransferEmail}</div>
+                    </div>
+                    
+                    <div class="etransfer-detail">
+                        <div class="etransfer-label">Amount:</div>
+                        <div class="etransfer-value" style="color: var(--primary-orange); font-size: 1.5rem;">$${totalAmount}</div>
+                    </div>
+                    
+                    <div class="etransfer-detail">
+                        <div class="etransfer-label">Message/Note:</div>
+                        <div class="etransfer-value" style="font-size: 1rem;">${buyerName} - Squares #${squaresList}</div>
+                    </div>
+                </div>
+                
+                <div class="important-note">
+                    <strong>⚠️ Important:</strong>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                        <li>Your squares (${squaresList}) are reserved for you</li>
+                        <li>Please send the e-transfer immediately</li>
+                        <li>Include your name and square numbers in the message</li>
+                        <li>Your squares will be confirmed and marked as sold once payment is received</li>
+                    </ul>
+                </div>
+                
+                <p style="text-align: center; color: #666; margin-top: 15px;">
+                    You will receive confirmation once the admin approves your payment.
+                </p>
+            `;
+            
+            modal.innerHTML = modalContent + '<button onclick="closeEtransferModal()" style="width: 100%; background: var(--primary-orange); margin-top: 15px;">I\'ve Sent the E-Transfer</button>';
+            modal.style.display = 'block';
+            overlay.style.display = 'block';
+        }
+
+        function closeEtransferModal() {
+            closeModal();
+            alert('Thank you! Your squares are reserved. We\'ll confirm once payment is received.');
+        }
+
+        function checkWinnerStatus() {
+            if (soldSquares.size === 50) {
+                document.body.innerHTML = `
+                    <div style="text-align:center; margin-top: 100px;">
+                        <h1 style="color:var(--primary-orange)">BOARD FULL!</h1>
+                        <p>All 50 squares have been sold.</p>
+                        <div style="padding: 20px; border: 2px dashed #fff;">
+                            <h2>LIVE DRAW COMMENCING SOON</h2>
+                            <p>Check our Facebook page for the live dart throw to pick the winner!</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Lottery Animation - Subscribe to admin broadcasts
+        supabaseClient
+            .channel('lottery_broadcast')
+            .on('broadcast', { event: 'lottery_start' }, () => {
+                console.log('Lottery started!');
+                const overlay = document.getElementById('lotteryOverlay');
+                overlay.classList.add('active');
+                document.getElementById('lotteryMessage').style.display = 'block';
+                document.getElementById('lotteryWinnerAnnouncement').style.display = 'none';
+                
+                // Clear any previous winner highlights
+                document.querySelectorAll('.square').forEach(sq => {
+                    sq.classList.remove('lottery-highlight', 'lottery-winner');
+                });
+            })
+            .on('broadcast', { event: 'lottery_highlight' }, (payload) => {
+                // Highlight the squares in the payload
+                if (payload.payload && payload.payload.squares) {
+                    // Clear previous highlights first
+                    document.querySelectorAll('.square.lottery-highlight').forEach(sq => {
+                        sq.classList.remove('lottery-highlight');
+                    });
+                    
+                    // Add new highlights with slight delay for visual effect
+                    setTimeout(() => {
+                        payload.payload.squares.forEach(squareNum => {
+                            const square = document.querySelector(`.square[data-number="${squareNum}"]`);
+                            if (square && !square.classList.contains('lottery-winner')) {
+                                square.classList.add('lottery-highlight');
+                                
+                                // Add sound effect (optional - can be enabled)
+                                // new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiDcIGWi78OScTgwLUKzn77RgGwU7k9ryzn0zBSh+yPDckUELEl+35O6rVxQLRp/h88BwIgUsg9Dy24k2CBlot/Dkm08MCk+u6O+zYBoFOpPa8s5+MgUofsjw3JFBC='); // Short beep
+                            }
+                        });
+                    }, 10);
+                }
+            })
+            .on('broadcast', { event: 'lottery_winner' }, async (payload) => {
+                console.log('Winner selected:', payload);
+                
+                // Clear all highlights
+                document.querySelectorAll('.square').forEach(sq => {
+                    sq.classList.remove('lottery-highlight');
+                });
+                
+                // Highlight winner
+                if (payload.payload && payload.payload.winner) {
+                    const winnerNumber = payload.payload.winner;
+                    const winnerSquare = document.querySelector(`.square[data-number="${winnerNumber}"]`);
+                    if (winnerSquare) {
+                        winnerSquare.classList.add('lottery-winner');
+                        
+                        // Scroll to winner
+                        setTimeout(() => {
+                            winnerSquare.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 500);
+                    }
+                    
+                    // Show winner announcement in overlay
+                    document.getElementById('lotteryMessage').style.display = 'none';
+                    document.getElementById('lotteryWinnerNumber').textContent = winnerNumber;
+                    document.getElementById('lotteryWinnerAnnouncement').style.display = 'block';
+                    
+                    // Get winner's name from database
+                    const { data: winnerData } = await supabaseClient
+                        .from('squares')
+                        .select('buyer_name')
+                        .eq('fundraiser_id', fundraiserId)
+                        .eq('square_number', winnerNumber)
+                        .single();
+                    
+                    const winnerName = winnerData?.buyer_name || 'Unknown';
+                    
+                    // Show winner announcement for 3 seconds
+                    setTimeout(() => {
+                        // Hide overlay
+                        document.getElementById('lotteryOverlay').classList.remove('active');
+                        
+                        // Show celebration popup immediately with confetti
+                        document.getElementById('celebrationNumber').textContent = '#' + winnerNumber;
+                        document.getElementById('celebrationName').textContent = winnerName;
+                        document.getElementById('winnerCelebration').classList.add('show');
+                        
+                        // Start confetti explosion immediately
+                        createConfetti();
+                        
+                        // Hide celebration after 8 seconds
+                        setTimeout(() => {
+                            document.getElementById('winnerCelebration').classList.remove('show');
+                            stopConfetti();
+                        }, 8000);
+                    }, 3000);
+                }
+            })
+            .subscribe();
+
+        // Confetti functions
+        let confettiInterval = null;
+
+        function createConfetti() {
+            const colors = ['#ff6b6b', '#4285f4', '#34a853', '#fbbc04', '#ff8c00', '#ffd700', '#ee5a6f', '#9b59b6'];
+            let confettiCount = 0;
+            const maxConfetti = 150;
+            
+            confettiInterval = setInterval(() => {
+                if (confettiCount >= maxConfetti) {
+                    clearInterval(confettiInterval);
+                    return;
+                }
+                
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.top = '-10px';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.width = (Math.random() * 10 + 5) + 'px';
+                confetti.style.height = (Math.random() * 10 + 5) + 'px';
+                confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                
+                // Random shapes
+                if (Math.random() > 0.5) {
+                    confetti.style.borderRadius = '50%';
+                }
+                
+                document.body.appendChild(confetti);
+                confettiCount++;
+                
+                // Remove confetti after animation
+                setTimeout(() => {
+                    confetti.remove();
+                }, 5000);
+            }, 30);
+        }
+
+        function stopConfetti() {
+            if (confettiInterval) {
+                clearInterval(confettiInterval);
+            }
+            // Remove any remaining confetti
+            document.querySelectorAll('.confetti').forEach(c => c.remove());
+        }
+
+        // Check for existing lottery winner on page load
+        let lotteryLoopInterval = null;
+        let isLoopingActive = false;
+        let winnerExists = false;
+
+        async function checkExistingWinner() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('squares')
+                    .select('buyer_name, sold_at')
+                    .eq('fundraiser_id', fundraiserId)
+                    .eq('square_number', 0)
+                    .maybeSingle(); // Use maybeSingle instead of single to handle no results
+
+                if (data && data.buyer_name && data.buyer_name.startsWith('WINNER:')) {
+                    winnerExists = true;
+                    const parts = data.buyer_name.split(':');
+                    const winnerNumber = parseInt(parts[1]);
+                    const winnerName = parts[2];
+                    
+                    // Hide main fundraiser interface
+                    document.querySelector('.container').style.display = 'none';
+                    document.querySelector('.stats').style.display = 'none';
+                    document.getElementById('cartSummary').style.display = 'none';
+                    
+                    // Auto-start loop when winner exists
+                    console.log('Winner found:', winnerNumber, winnerName);
+                    setTimeout(() => {
+                        startLotteryLoop(winnerNumber, winnerName);
+                    }, 500);
+                }
+            } catch (error) {
+                // No winner found, show normal interface
+                console.log('No existing winner:', error);
+                winnerExists = false;
+            }
+        }
+
+        function startLotteryLoop(winnerNumber, winnerName) {
+            if (isLoopingActive) return; // Prevent multiple loops
+            isLoopingActive = true;
+            
+            // Show overlay
+            document.getElementById('lotteryOverlay').classList.add('active');
+            document.getElementById('lotteryMessage').style.display = 'block';
+            document.getElementById('lotteryWinnerAnnouncement').style.display = 'none';
+            
+            // Loop the draw animation
+            let loopPhase = 0;
+            const phases = [
+                { duration: 3000, speed: 80, count: 10 },   // Phase 1
+                { duration: 3000, speed: 150, count: 5 },   // Phase 2
+                { duration: 3000, speed: 300, count: 2 },   // Phase 3
+                { duration: 3000, speed: 500, count: 1 }    // Phase 4
+            ];
+
+            function runPhase() {
+                if (!isLoopingActive) return; // Check if stopped
+                
+                if (loopPhase >= phases.length) {
+                    // Show winner
+                    showLoopWinner(winnerNumber, winnerName);
+                    return;
+                }
+
+                const phase = phases[loopPhase];
+                let elapsed = 0;
+
+                const phaseInterval = setInterval(() => {
+                    if (!isLoopingActive) {
+                        clearInterval(phaseInterval);
+                        return;
+                    }
+                    
+                    // Clear previous highlights
+                    document.querySelectorAll('.square.lottery-highlight').forEach(sq => {
+                        sq.classList.remove('lottery-highlight');
+                    });
+
+                    // Highlight random squares
+                    for (let i = 0; i < phase.count; i++) {
+                        const randomNum = Math.floor(Math.random() * 50) + 1;
+                        const square = document.querySelector(`.square[data-number="${randomNum}"]`);
+                        if (square) {
+                            square.classList.add('lottery-highlight');
+                        }
+                    }
+
+                    elapsed += phase.speed;
+                    if (elapsed >= phase.duration) {
+                        clearInterval(phaseInterval);
+                        loopPhase++;
+                        runPhase();
+                    }
+                }, phase.speed);
+            }
+
+            runPhase();
+        }
+
+        function showLoopWinner(winnerNumber, winnerName) {
+            if (!isLoopingActive) return;
+            
+            // Clear highlights
+            document.querySelectorAll('.square').forEach(sq => {
+                sq.classList.remove('lottery-highlight');
+            });
+
+            // Highlight winner
+            const winnerSquare = document.querySelector(`.square[data-number="${winnerNumber}"]`);
+            if (winnerSquare) {
+                winnerSquare.classList.add('lottery-winner');
+            }
+
+            // Show announcement
+            document.getElementById('lotteryMessage').style.display = 'none';
+            document.getElementById('lotteryWinnerNumber').textContent = winnerNumber;
+            document.getElementById('lotteryWinnerAnnouncement').style.display = 'block';
+
+            // Show celebration after 3 seconds
+            setTimeout(() => {
+                if (!isLoopingActive) return;
+                
+                document.getElementById('lotteryOverlay').classList.remove('active');
+                
+                document.getElementById('celebrationNumber').textContent = '#' + winnerNumber;
+                document.getElementById('celebrationName').textContent = winnerName;
+                document.getElementById('winnerCelebration').classList.add('show');
+                
+                createConfetti();
+                
+                // Loop again after 8 seconds
+                setTimeout(() => {
+                    if (!isLoopingActive) return;
+                    
+                    document.getElementById('winnerCelebration').classList.remove('show');
+                    stopConfetti();
+                    
+                    // Restart loop
+                    setTimeout(() => {
+                        if (!isLoopingActive) return;
+                        isLoopingActive = false; // Reset flag
+                        startLotteryLoop(winnerNumber, winnerName);
+                    }, 2000);
+                }, 8000);
+            }, 3000);
+        }
+
+        function stopLoop() {
+            isLoopingActive = false;
+            
+            // Clear displays (with null checks)
+            const overlay = document.getElementById('lotteryOverlay');
+            const celebration = document.getElementById('winnerCelebration');
+            
+            if (overlay) overlay.classList.remove('active');
+            if (celebration) celebration.classList.remove('show');
+            stopConfetti();
+            
+            // Clear winner highlights
+            document.querySelectorAll('.square').forEach(sq => {
+                sq.classList.remove('lottery-highlight', 'lottery-winner');
+            });
+            
+            // Show main interface again if winner was cleared
+            if (!winnerExists) {
+                const container = document.querySelector('.container');
+                const stats = document.querySelector('.stats');
+                if (container) container.style.display = 'block';
+                if (stats) stats.style.display = 'block';
+            }
+        }
+
+        // Listen for lottery stop
+        supabaseClient
+            .channel('lottery_stop_broadcast')
+            .on('broadcast', { event: 'lottery_stop' }, () => {
+                stopLoop();
+            })
+            .subscribe();
+
+        // Listen for lottery replay start
+        supabaseClient
+            .channel('lottery_replay_broadcast')
+            .on('broadcast', { event: 'lottery_replay' }, async () => {
+                // Get winner from database
+                const { data } = await supabaseClient
+                    .from('squares')
+                    .select('buyer_name')
+                    .eq('fundraiser_id', fundraiserId)
+                    .eq('square_number', 0)
+                    .maybeSingle(); // Use maybeSingle to handle no results
+
+                if (data && data.buyer_name && data.buyer_name.startsWith('WINNER:')) {
+                    const parts = data.buyer_name.split(':');
+                    const winnerNumber = parseInt(parts[1]);
+                    const winnerName = parts[2];
+                    
+                    // Hide main interface
+                    document.querySelector('.container').style.display = 'none';
+                    document.querySelector('.stats').style.display = 'none';
+                    document.getElementById('cartSummary').style.display = 'none';
+                    
+                    startLotteryLoop(winnerNumber, winnerName);
+                }
+            })
+            .subscribe();
+
+        // Listen for winner cleared (when admin clears data)
+        supabaseClient
+            .channel('lottery_data_cleared')
+            .on('postgres_changes',
+                { event: 'DELETE', schema: 'public', table: 'squares', filter: 'square_number=eq.0' },
+                () => {
+                    winnerExists = false;
+                    stopLoop();
+                    // Reload page to show normal interface
+                    setTimeout(() => location.reload(), 500);
+                }
+            )
+            .subscribe();
+
+        // Initialize app
+        initGrid();
+        subscribeToSquareChanges();
+        checkExistingWinner(); // Check for existing winner on load
+    </script>
+</body>
+</html>

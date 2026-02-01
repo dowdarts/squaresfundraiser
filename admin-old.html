@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Square Fund - Admin Dashboard</title>
+    <title>Fundraiser Dashboard - Multi-Tenant Admin</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -37,18 +37,10 @@
         }
 
         .nav-logo {
-            display: flex;
-            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-orange);
             cursor: pointer;
-        }
-
-        .nav-logo img {
-            height: 50px;
-            width: auto;
-            padding: 5px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .nav-buttons {
@@ -560,9 +552,7 @@
 <body>
     <!-- Navigation -->
     <nav>
-        <div class="nav-logo" onclick="goToLobby()">
-            <img src="square-fund-logo.png" alt="Square Fund">
-        </div>
+        <div class="nav-logo" onclick="goToLobby()">🎯 Square Fundraiser</div>
         <div class="nav-buttons">
             <span class="user-email" id="userEmail"></span>
             <button class="nav-btn secondary" onclick="signOut()">Sign Out</button>
@@ -572,8 +562,8 @@
     <!-- Main Container -->
     <div class="container">
         <div class="page-header">
-            <h1>Square Fund Dashboard</h1>
-            <p>Manage your fundraisers and track performance</p>
+            <h1>My Fundraisers Dashboard</h1>
+            <p>Manage your square fundraisers and track performance</p>
         </div>
 
         <!-- Fundraiser List Section -->
@@ -687,9 +677,8 @@
                         </div>
                     </div>
 
-                    <div style="margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <div style="margin-top: 2rem; display: flex; gap: 1rem;">
                         <button type="submit" class="btn btn-primary">Save Changes</button>
-                        <button type="button" class="btn btn-secondary" onclick="viewPublicPage()">🔗 View Public Page</button>
                         <button type="button" class="btn btn-danger" onclick="deleteFundraiser()">Delete Fundraiser</button>
                     </div>
                 </form>
@@ -740,12 +729,6 @@
                     <div class="form-helper">Email where buyers send e-transfers</div>
                 </div>
 
-                <div class="form-group">
-                    <label>Banner Image (Optional)</label>
-                    <input type="file" id="createBannerUpload" accept="image/*">
-                    <div class="form-helper">Upload a banner image for your fundraiser (recommended size: 900x600px)</div>
-                </div>
-
                 <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
                     <button type="submit" class="btn btn-primary" id="createBtn">Create Fundraiser</button>
                     <button type="button" class="btn btn-secondary" onclick="closeCreateModal()">Cancel</button>
@@ -756,9 +739,9 @@
 
     <script>
         // Supabase Configuration
-        const SUPABASE_URL = 'https://xsmrquoivqrxalxjqxdw.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzbXJxdW9pdnFyeGFseGpxeGR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2NTkxNzUsImV4cCI6MjA4NTIzNTE3NX0.uJAVb4k61Oxja15NUuiC8_TtxhzWtAC-dlh-nepTKdU';
-        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const SUPABASE_URL = 'https://osicsfticatmfdoknfem.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_tc4Lx-QzZuUlVgc4FPUQXw_JiFTaQnE';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let currentUser = null;
         let currentFundraiserId = null;
@@ -772,7 +755,7 @@
 
         // Check authentication
         async function checkAuth() {
-            const { data: { user } } = await supabaseClient.auth.getUser();
+            const { data: { user } } = await supabase.auth.getUser();
             
             if (!user) {
                 window.location.href = 'index.html';
@@ -786,7 +769,7 @@
         // Load user's fundraisers
         async function loadFundraisers() {
             try {
-                const { data, error } = await supabaseClient
+                const { data, error } = await supabase
                     .from('fundraisers')
                     .select('*')
                     .eq('organizer_id', currentUser.id)
@@ -821,7 +804,7 @@
 
             for (const fundraiser of fundraisers) {
                 // Get stats
-                const { data: stats } = await supabaseClient
+                const { data: stats } = await supabase
                     .rpc('get_fundraiser_stats', { fundraiser_uuid: fundraiser.id });
 
                 const stat = stats && stats.length > 0 ? stats[0] : {
@@ -895,7 +878,7 @@
                 statusSpan.className = `fundraiser-card-status ${fundraiser.is_active ? 'active' : 'inactive'}`;
 
                 // Load stats
-                const { data: stats } = await supabaseClient
+                const { data: stats } = await supabase
                     .rpc('get_fundraiser_stats', { fundraiser_uuid: fundraiserId });
 
                 const stat = stats && stats.length > 0 ? stats[0] : {
@@ -905,7 +888,7 @@
                 };
 
                 // Get pending count
-                const { data: pending } = await supabaseClient
+                const { data: pending } = await supabase
                     .from('squares')
                     .select('square_number')
                     .eq('fundraiser_id', fundraiserId)
@@ -941,7 +924,7 @@
         // Load pending payments
         async function loadPendingPayments(fundraiserId) {
             try {
-                const { data: pending, error } = await supabaseClient
+                const { data: pending, error } = await supabase
                     .from('squares')
                     .select('square_number, buyer_name, buyer_email, pending_since')
                     .eq('fundraiser_id', fundraiserId)
@@ -1016,7 +999,7 @@
 
             try {
                 for (const squareNum of squares) {
-                    const { error } = await supabaseClient
+                    const { error } = await supabase
                         .from('squares')
                         .update({
                             sold: true,
@@ -1048,7 +1031,7 @@
 
             try {
                 for (const squareNum of squares) {
-                    const { error } = await supabaseClient
+                    const { error } = await supabase
                         .from('squares')
                         .update({
                             sold: false,
@@ -1109,20 +1092,20 @@
                     const fileExt = bannerFile.name.split('.').pop();
                     const fileName = `${currentUser.id}/${currentFundraiserId}.${fileExt}`;
 
-                    const { error: uploadError } = await supabaseClient.storage
+                    const { error: uploadError } = await supabase.storage
                         .from('fundraiser-banners')
                         .upload(fileName, bannerFile, { upsert: true });
 
                     if (uploadError) throw uploadError;
 
-                    const { data: { publicUrl } } = supabaseClient.storage
+                    const { data: { publicUrl } } = supabase.storage
                         .from('fundraiser-banners')
                         .getPublicUrl(fileName);
 
                     updates.banner_url = publicUrl;
                 }
 
-                const { error } = await supabaseClient
+                const { error } = await supabase
                     .from('fundraisers')
                     .update(updates)
                     .eq('id', currentFundraiserId);
@@ -1168,7 +1151,7 @@
             }
 
             try {
-                const { error } = await supabaseClient
+                const { error } = await supabase
                     .from('fundraisers')
                     .delete()
                     .eq('id', currentFundraiserId);
@@ -1194,14 +1177,6 @@
         function closeCreateModal() {
             document.getElementById('createFundraiserModal').classList.remove('show');
             document.getElementById('createMessage').className = 'message';
-            // Reset form fields
-            document.getElementById('createTitle').value = '';
-            document.getElementById('createDescription').value = '';
-            document.getElementById('createPrice').value = '5.00';
-            document.getElementById('createPaymentEmail').value = '';
-            document.getElementById('createBannerUpload').value = '';
-            document.getElementById('createBtn').disabled = false;
-            document.getElementById('createBtn').textContent = 'Create Fundraiser';
         }
 
         // Create fundraiser
@@ -1225,29 +1200,7 @@
                     is_active: true
                 };
 
-                // Handle banner upload if provided
-                const bannerFile = document.getElementById('createBannerUpload').files[0];
-                if (bannerFile) {
-                    btn.textContent = 'Uploading banner...';
-                    const fileExt = bannerFile.name.split('.').pop();
-                    const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-                    const filePath = `fundraiser-banners/${fileName}`;
-                    
-                    const { error: uploadError } = await supabaseClient.storage
-                        .from('fundraiser-images')
-                        .upload(filePath, bannerFile);
-
-                    if (uploadError) throw uploadError;
-
-                    const { data: { publicUrl } } = supabaseClient.storage
-                        .from('fundraiser-images')
-                        .getPublicUrl(filePath);
-
-                    fundraiserData.banner_url = publicUrl;
-                }
-
-                btn.textContent = 'Creating fundraiser...';
-                const { data: newFundraiser, error } = await supabaseClient
+                const { data: newFundraiser, error } = await supabase
                     .from('fundraisers')
                     .insert([fundraiserData])
                     .select()
@@ -1256,8 +1209,7 @@
                 if (error) throw error;
 
                 // Initialize 50 squares for this fundraiser
-                btn.textContent = 'Initializing squares...';
-                await supabaseClient.rpc('initialize_fundraiser_squares', {
+                await supabase.rpc('initialize_fundraiser_squares', {
                     fundraiser_uuid: newFundraiser.id
                 });
 
@@ -1292,22 +1244,13 @@
 
         // Sign out
         async function signOut() {
-            await supabaseClient.auth.signOut();
+            await supabase.auth.signOut();
             window.location.href = 'index.html';
         }
 
         // Go to lobby
         function goToLobby() {
             window.location.href = 'index.html';
-        }
-
-        // View public fundraiser page
-        function viewPublicPage() {
-            if (!currentFundraiserId) {
-                alert('Please select a fundraiser first');
-                return;
-            }
-            window.open(`squares.html?id=${currentFundraiserId}`, '_blank');
         }
 
         // Initialize on load
