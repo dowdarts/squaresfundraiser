@@ -1115,26 +1115,41 @@
             try {
                 const reserveUntil = new Date(Date.now() + duration * 1000).toISOString();
                 
-                const { data, error } = await supabaseClient
+                // First check if square is available
+                const { data: checkData } = await supabaseClient
+                    .from('squares')
+                    .select('sold, reserved_until')
+                    .eq('fundraiser_id', fundraiserId)
+                    .eq('square_number', num)
+                    .single();
+                
+                if (!checkData || checkData.sold) {
+                    return false;
+                }
+                
+                // Now try to reserve it
+                const { error } = await supabaseClient
                     .from('squares')
                     .update({ 
                         reserved_until: reserveUntil,
                         reserved_by: sessionId
                     })
                     .eq('fundraiser_id', fundraiserId)
-                    .eq('square_number', num)
-                    .select();
+                    .eq('square_number', num);
                 
-                if (error || !data || data.length === 0) {
+                if (error) {
                     console.error('Error reserving square:', error);
+                    alert('Failed to reserve square: ' + (error.message || 'Unknown error'));
                     return false;
                 }
                 
+                // If no error, the reservation succeeded
                 pendingSquares.set(num, new Date(reserveUntil));
                 myReservedSquares.add(num);
                 return true;
             } catch (error) {
                 console.error('Error:', error);
+                alert('Unexpected error: ' + error.message);
                 return false;
             }
         }

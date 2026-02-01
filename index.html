@@ -580,14 +580,14 @@
             }
         }
 
-        // Load fundraisers
+        // Load fundraisers - Updated to use organizers table
         async function loadFundraisers() {
             try {
                 const { data: fundraisers, error } = await supabaseClient
                     .from('fundraisers')
                     .select(`
                         *,
-                        profiles (full_name, organization_name)
+                        organizers (full_name, organization_name)
                     `)
                     .eq('is_active', true)
                     .order('created_at', { ascending: false });
@@ -629,8 +629,8 @@
 
                 // Handle organizer name with null checks
                 let organizerName = 'Organizer';
-                if (fundraiser.profiles) {
-                    organizerName = fundraiser.profiles.organization_name || fundraiser.profiles.full_name || 'Organizer';
+                if (fundraiser.organizers) {
+                    organizerName = fundraiser.organizers.organization_name || fundraiser.organizers.full_name || 'Organizer';
                 }
 
                 const card = document.createElement('div');
