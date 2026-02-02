@@ -1001,6 +1001,19 @@
 
                 <!-- Overview Tab -->
                 <div id="tab-overview" class="tab-content active">
+                    <!-- Winner Display -->
+                    <div id="overviewWinnerDisplay" style="display: none;">
+                        <div class="winner-card" style="margin-bottom: 2rem;">
+                            <div class="winner-card-header">
+                                <h3>🏆 Winner Announced</h3>
+                            </div>
+                            <div class="winner-card-body">
+                                <div class="winner-square-number" id="overviewWinnerNumber">-</div>
+                                <div class="winner-buyer-name" id="overviewWinnerName">-</div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="stats-grid">
                         <div class="stat-box">
                             <div class="stat-box-value" id="statSold">0</div>
@@ -1364,6 +1377,26 @@
                 document.getElementById('statAvailable').textContent = stat.remaining_count;
                 document.getElementById('statPending').textContent = pending ? pending.length : 0;
                 document.getElementById('statRevenue').textContent = '$' + stat.total_raised;
+
+                // Check for winner in Overview tab
+                const { data: winnerData } = await supabaseClient
+                    .from('squares')
+                    .select('square_number, buyer_name')
+                    .eq('fundraiser_id', fundraiserId)
+                    .eq('square_number', 0)
+                    .single();
+
+                if (winnerData && winnerData.buyer_name) {
+                    // Parse the winner data (format: "Square #X: Name")
+                    const match = winnerData.buyer_name.match(/Square #(\d+): (.+)/);
+                    if (match) {
+                        document.getElementById('overviewWinnerNumber').textContent = match[1];
+                        document.getElementById('overviewWinnerName').textContent = match[2];
+                        document.getElementById('overviewWinnerDisplay').style.display = 'block';
+                    }
+                } else {
+                    document.getElementById('overviewWinnerDisplay').style.display = 'none';
+                }
 
                 // Load settings form
                 document.getElementById('settingsTitle').value = fundraiser.title;
