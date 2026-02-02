@@ -1,8 +1,22 @@
 # Banner Image Storage Setup
 
-## Quick Setup (2 minutes)
+## Quick Setup (1 minute) - AUTOMATED
 
-To enable banner images for your fundraisers, you need to create a storage bucket in Supabase.
+The easiest way to set up banner storage is to run the SQL script:
+
+1. Go to your Supabase dashboard
+2. Click **SQL Editor** in the left sidebar
+3. Click **New query**
+4. Copy the entire contents of `setup-banner-storage.sql`
+5. Paste and click **RUN**
+6. You should see "Success. No rows returned"
+7. Done! Your storage bucket and policies are ready 🎉
+
+---
+
+## Manual Setup (5 minutes) - If SQL doesn't work
+
+If you prefer to set it up manually through the UI:
 
 ### Step 1: Create the Storage Bucket
 1. Go to your Supabase dashboard
