@@ -1064,15 +1064,6 @@
                         </div>
 
                         <div class="form-group full-width">
-                            <label>Banner Image</label>
-                            <input type="file" id="settingsBannerFile" accept="image/*" onchange="previewBanner()">
-                            <div class="form-helper">Recommended size: 1200x400px</div>
-                            <div class="banner-preview" id="bannerPreview">
-                                <div class="banner-placeholder">No banner uploaded</div>
-                            </div>
-                        </div>
-
-                        <div class="form-group full-width">
                             <h3 class="section-title">Payment Information</h3>
                         </div>
 
@@ -1176,12 +1167,6 @@
                     <label>Payment Email (E-Transfer) *</label>
                     <input type="email" id="createPaymentEmail" required placeholder="fundraiser@example.com">
                     <div class="form-helper">Email where buyers send e-transfers</div>
-                </div>
-
-                <div class="form-group">
-                    <label>Banner Image (Optional)</label>
-                    <input type="file" id="createBannerUpload" accept="image/*">
-                    <div class="form-helper">Upload a banner image for your fundraiser (recommended size: 900x600px)</div>
                 </div>
 
                 <div class="form-actions">
@@ -1406,12 +1391,6 @@
                 document.getElementById('settingsPaymentEmail').value = fundraiser.payment_email || '';
                 document.getElementById('settingsPaymentInstructions').value = fundraiser.payment_instructions || '';
 
-                // Load banner preview
-                if (fundraiser.banner_url) {
-                    document.getElementById('bannerPreview').style.backgroundImage = `url('${fundraiser.banner_url}')`;
-                    document.getElementById('bannerPreview').innerHTML = '';
-                }
-
                 // Load pending payments
                 await loadPendingPayments(fundraiserId);
 
@@ -1590,35 +1569,6 @@
                     updated_at: new Date().toISOString()
                 };
 
-                // Handle banner upload
-                const bannerFile = document.getElementById('settingsBannerFile').files[0];
-                if (bannerFile) {
-                    try {
-                        const fileExt = bannerFile.name.split('.').pop();
-                        const fileName = `${currentUser.id}/${currentFundraiserId}.${fileExt}`;
-
-                        const { error: uploadError } = await supabaseClient.storage
-                            .from('fundraiser-banners')
-                            .upload(fileName, bannerFile, { upsert: true });
-
-                        if (uploadError) {
-                            console.warn('Banner upload skipped:', uploadError);
-                            messageDiv.className = 'message error show';
-                            messageDiv.textContent = '⚠️ Settings saved but banner upload failed. Storage bucket not configured.';
-                            messageDiv.style.display = 'block';
-                        } else {
-                            const { data: { publicUrl } } = supabaseClient.storage
-                                .from('fundraiser-banners')
-                                .getPublicUrl(fileName);
-
-                            updates.banner_url = publicUrl;
-                        }
-                    } catch (bannerError) {
-                        console.warn('Banner upload error:', bannerError);
-                        // Continue saving other settings
-                    }
-                }
-
                 const { error } = await supabaseClient
                     .from('fundraisers')
                     .update(updates)
@@ -1641,20 +1591,6 @@
                 console.error('Error saving settings:', error);
                 messageDiv.className = 'message error show';
                 messageDiv.textContent = '❌ Error: ' + error.message;
-            }
-        }
-
-        // Preview banner
-        function previewBanner() {
-            const file = document.getElementById('settingsBannerFile').files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const preview = document.getElementById('bannerPreview');
-                    preview.style.backgroundImage = `url('${e.target.result}')`;
-                    preview.innerHTML = '';
-                };
-                reader.readAsDataURL(file);
             }
         }
 
@@ -1696,7 +1632,6 @@
             document.getElementById('createDescription').value = '';
             document.getElementById('createPrice').value = '5.00';
             document.getElementById('createPaymentEmail').value = '';
-            document.getElementById('createBannerUpload').value = '';
             document.getElementById('createBtn').disabled = false;
             document.getElementById('createBtn').textContent = 'Create Fundraiser';
         }
@@ -1721,35 +1656,6 @@
                     payment_email: document.getElementById('createPaymentEmail').value,
                     is_active: true
                 };
-
-                // Handle banner upload if provided
-                const bannerFile = document.getElementById('createBannerUpload').files[0];
-                if (bannerFile) {
-                    try {
-                        btn.textContent = 'Uploading banner...';
-                        const fileExt = bannerFile.name.split('.').pop();
-                        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-                        const filePath = `fundraiser-banners/${fileName}`;
-                        
-                        const { error: uploadError } = await supabaseClient.storage
-                            .from('fundraiser-images')
-                            .upload(filePath, bannerFile);
-
-                        if (uploadError) {
-                            console.warn('Banner upload skipped:', uploadError);
-                            // Continue without banner - it can be added later in settings
-                        } else {
-                            const { data: { publicUrl } } = supabaseClient.storage
-                                .from('fundraiser-images')
-                                .getPublicUrl(filePath);
-
-                            fundraiserData.banner_url = publicUrl;
-                        }
-                    } catch (bannerError) {
-                        console.warn('Banner upload failed:', bannerError);
-                        // Continue without banner
-                    }
-                }
 
                 btn.textContent = 'Creating fundraiser...';
                 const { data: newFundraiser, error } = await supabaseClient
