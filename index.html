@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Square Fund - Sports Fundraising Made Easy</title>
+    <title>SquareFund - Digital Squares. Zero Fees.</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --primary-orange: #f39200;
-            --dark-grey: #2d2d2d;
-            --light-grey: #e0e0e0;
-            --background-dark: #1a1a1a;
-            --card-bg: #2d2d2d;
+            --primary-orange: #f97316;
+            --background-dark: #121212;
+            --card-bg: #1a1a1a;
+            --border-color: rgba(255, 255, 255, 0.05);
         }
 
         * {
@@ -21,806 +20,1175 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
             background-color: var(--background-dark);
-            color: white;
+            color: #e2e8f0;
             min-height: 100vh;
+            line-height: 1.6;
         }
 
-        /* Navigation Bar */
+        ::selection {
+            background-color: var(--primary-orange);
+            color: white;
+        }
+
+        /* Navigation */
         nav {
-            background-color: var(--dark-grey);
-            padding: 1rem 2rem;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            padding: 1.25rem 0;
+        }
+
+        nav.scrolled {
+            background-color: rgba(26, 26, 26, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.75rem 0;
+        }
+
+        .nav-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            justify-content: space-between;
         }
 
         .nav-logo {
             display: flex;
             align-items: center;
             gap: 0.75rem;
-        }
-
-        .nav-logo img {
-            height: 50px;
-            width: auto;
-            padding: 5px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .nav-buttons {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .nav-btn {
-            padding: 0.6rem 1.5rem;
-            background-color: var(--primary-orange);
-            color: black;
-            border: none;
-            border-radius: 5px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .nav-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(243, 146, 0, 0.4);
-        }
-
-        .nav-btn.secondary {
-            background-color: transparent;
-            border: 2px solid var(--primary-orange);
-            color: var(--primary-orange);
-        }
-
-        /* Hero Section */
-        .hero {
-            text-align: center;
-            padding: 4rem 2rem;
-            background: linear-gradient(135deg, var(--dark-grey) 0%, var(--background-dark) 100%);
-        }
-
-        .hero-logo {
-            max-width: 400px;
-            margin: 0 auto 2rem;
-            padding: 20px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-        }
-
-        .hero h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            color: var(--primary-orange);
-        }
-
-        .hero p {
-            font-size: 1.2rem;
-            color: var(--light-grey);
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        /* Main Content */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-        }
-
-        .section-header h2 {
-            font-size: 2rem;
-            color: white;
-        }
-
-        /* Fundraiser Grid */
-        .fundraisers-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 2rem;
-            margin-bottom: 3rem;
-        }
-
-        .fundraiser-card {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            transition: transform 0.3s, box-shadow 0.3s;
-            cursor: pointer;
-        }
-
-        .fundraiser-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 30px rgba(243, 146, 0, 0.3);
-        }
-
-        .fundraiser-banner {
-            width: 100%;
-            height: 200px;
-            background-color: var(--primary-orange);
-            background-image: linear-gradient(135deg, var(--primary-orange) 0%, #d97500 100%);
-            background-size: contain;
-            background-position: center;
-            background-repeat: no-repeat;
-        }
-
-        .fundraiser-content {
-            padding: 1.5rem;
-        }
-
-        .fundraiser-title {
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-            color: white;
-        }
-
-        .fundraiser-organizer {
-            font-size: 0.9rem;
-            color: var(--primary-orange);
-            margin-bottom: 1rem;
-        }
-
-        .fundraiser-description {
-            font-size: 1rem;
-            color: var(--light-grey);
-            margin-bottom: 1rem;
-            line-height: 1.5;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .fundraiser-stats {
-            display: flex;
-            justify-content: space-between;
-            padding-top: 1rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .stat {
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 1.3rem;
-            font-weight: bold;
-            color: var(--primary-orange);
-        }
-
-        .stat-label {
-            font-size: 0.85rem;
-            color: var(--light-grey);
-        }
-
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 4rem 2rem;
-            color: var(--light-grey);
-        }
-
-        .empty-state-icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
-        }
-
-        .empty-state h3 {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        /* Loading State */
-        .loading {
-            text-align: center;
-            padding: 4rem 2rem;
-            color: var(--primary-orange);
-        }
-
-        .spinner {
-            border: 4px solid rgba(243, 146, 0, 0.2);
-            border-top: 4px solid var(--primary-orange);
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 1rem;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            animation: fadeIn 0.3s;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .modal-content {
-            background-color: var(--card-bg);
-            margin: 5% auto;
-            padding: 2rem;
-            border-radius: 12px;
-            max-width: 500px;
-            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
-            animation: slideDown 0.3s;
-        }
-
-        @keyframes slideDown {
-            from {
-                transform: translateY(-50px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .close {
-            color: var(--light-grey);
-            float: right;
-            font-size: 2rem;
-            font-weight: bold;
-            cursor: pointer;
-            line-height: 1;
-        }
-
-        .close:hover {
-            color: white;
-        }
-
-        .modal h2 {
-            margin-bottom: 1.5rem;
-            color: var(--primary-orange);
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: white;
-            font-weight: 500;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 0.8rem;
-            background-color: var(--background-dark);
-            border: 2px solid var(--dark-grey);
-            border-radius: 5px;
-            color: white;
-            font-size: 1rem;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: var(--primary-orange);
-        }
-
-        .submit-btn {
-            width: 100%;
-            padding: 1rem;
-            background-color: var(--primary-orange);
-            color: black;
-            border: none;
-            border-radius: 5px;
-            font-size: 1rem;
-            font-weight: bold;
             cursor: pointer;
             transition: transform 0.2s;
         }
 
-        .submit-btn:hover {
-            transform: translateY(-2px);
+        .nav-logo:hover {
+            transform: scale(1.05);
         }
 
-        .submit-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+        .nav-logo-img {
+            background: white;
+            padding: 0.25rem;
+            border-radius: 0.375rem;
+            height: 32px;
+            width: auto;
         }
 
-        .form-footer {
-            margin-top: 1rem;
-            text-align: center;
-            color: var(--light-grey);
-        }
-
-        .form-footer a {
-            color: var(--primary-orange);
-            cursor: pointer;
-            text-decoration: none;
-        }
-
-        .form-footer a:hover {
-            text-decoration: underline;
-        }
-
-        .error-message {
-            background-color: #d9534f;
+        .nav-logo-text {
+            font-size: 1.25rem;
+            font-weight: 900;
+            letter-spacing: -0.05em;
             color: white;
-            padding: 1rem;
-            border-radius: 5px;
-            margin-bottom: 1rem;
+            text-transform: uppercase;
+            font-style: italic;
+        }
+
+        .nav-logo-text span {
+            color: var(--primary-orange);
+        }
+
+        .nav-desktop {
+            display: none;
+            align-items: center;
+            gap: 2rem;
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+        }
+
+        @media (min-width: 768px) {
+            .nav-desktop {
+                display: flex;
+            }
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover {
+            color: var(--primary-orange);
+        }
+
+        .nav-btn {
+            background-color: var(--primary-orange);
+            color: white;
+            padding: 0.625rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-size: 0.75rem;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.3);
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            background-color: #ea580c;
+        }
+
+        .nav-btn:active {
+            transform: scale(0.95);
+        }
+
+        .mobile-menu-btn {
+            display: block;
+            padding: 0.5rem;
+            color: white;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        @media (min-width: 768px) {
+            .mobile-menu-btn {
+                display: none;
+            }
+        }
+
+        .mobile-menu {
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .mobile-menu.hidden {
             display: none;
         }
 
-        /* User Menu */
-        .user-menu {
+        /* Hero Section */
+        .hero {
             position: relative;
-            display: none;
+            padding-top: 8rem;
+            padding-bottom: 5rem;
+            overflow: hidden;
+            border-bottom: 1px solid var(--border-color);
         }
 
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
+        .hero-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            display: grid;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        @media (min-width: 1024px) {
+            .hero-container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 10;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.375rem;
+            background-color: var(--primary-orange);
+            color: white;
+            font-weight: 900;
+            font-size: 0.625rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 900;
+            line-height: 0.95;
+            letter-spacing: -0.05em;
+            color: white;
+            text-transform: uppercase;
+            font-style: italic;
+            margin-bottom: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            .hero-title {
+                font-size: 4.5rem;
+            }
+        }
+
+        .hero-title span {
+            color: var(--primary-orange);
+        }
+
+        .hero-description {
+            margin-top: 2rem;
+            font-size: 1.125rem;
+            color: #94a3b8;
+            line-height: 1.7;
+            max-width: 36rem;
+            font-weight: 500;
+        }
+
+        .hero-buttons {
+            margin-top: 2.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .hero-cta-primary {
+            background-color: white;
+            color: black;
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 25px 50px -12px rgba(255, 255, 255, 0.05);
+            transition: all 0.2s;
+        }
+
+        .hero-cta-primary:hover {
+            background-color: #e2e8f0;
+        }
+
+        .hero-feature-badge {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            background-color: rgba(255, 255, 255, 0.05);
+            height: 3.5rem;
+        }
+
+        .hero-feature-text {
+            font-size: 0.625rem;
+            font-weight: 700;
+            color: #cbd5e1;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+        }
+
+        /* Demo Board */
+        .demo-board {
+            position: relative;
+        }
+
+        .demo-board-container {
+            position: relative;
+            background-color: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 2.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        @media (min-width: 768px) {
+            .demo-board-container {
+                padding: 2rem;
+            }
+        }
+
+        .demo-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .demo-title {
+            font-size: 1.25rem;
+            font-weight: 900;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: -0.025em;
+            margin-bottom: 0.75rem;
+        }
+
+        .demo-price-badge {
+            display: inline-block;
+            margin-top: 0.75rem;
             background-color: var(--primary-orange);
             color: black;
+            font-weight: 900;
+            font-size: 0.625rem;
+            padding: 0.5rem 1.5rem;
+            border-radius: 0.375rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.1);
+        }
+
+        .demo-flyer {
+            margin-bottom: 1.5rem;
+            border-radius: 1rem;
+            border: 2px solid rgba(249, 115, 22, 0.3);
+            overflow: hidden;
+            background-color: black;
+            position: relative;
+            transition: all 0.7s;
+        }
+
+        .demo-flyer:hover {
+            transform: scale(1.02);
+        }
+
+        .demo-flyer-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .demo-flyer-caption {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.95), transparent);
+        }
+
+        .demo-flyer-text {
+            color: white;
+            font-size: 0.625rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-style: italic;
+        }
+
+        .demo-grid-container {
+            background-color: #222;
+            padding: 1rem;
+            border-radius: 1rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 0.375rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .demo-square {
+            aspect-ratio: 1;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            transition: all 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
-            cursor: pointer;
+            font-size: 0.625rem;
+            font-weight: 700;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        .user-dropdown {
-            display: none;
-            position: absolute;
-            right: 0;
-            top: 50px;
+        .demo-square.available {
+            background-color: #ffcc00;
+            color: #121212;
+        }
+
+        .demo-square.available:hover {
+            background-color: #ffd633;
+        }
+
+        .demo-square.selected {
+            background-color: #4caf50;
+            color: white;
+            transform: scale(1.1);
+            z-index: 10;
+            box-shadow: 0 10px 15px -3px rgba(76, 175, 80, 0.5);
+        }
+
+        .demo-square.reserved {
+            background-color: rgba(255, 77, 77, 0.5);
+            color: rgba(255, 255, 255, 0.4);
+            cursor: not-allowed;
+        }
+
+        .demo-square.sold {
+            background-color: #444;
+            color: rgba(255, 255, 255, 0.1);
+            cursor: not-allowed;
+        }
+
+        .demo-legend {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            padding: 1rem;
             background-color: var(--card-bg);
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            min-width: 200px;
-            z-index: 100;
+            border-radius: 0.75rem;
+            border: 1px solid var(--border-color);
         }
 
-        .user-dropdown.show {
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .legend-color {
+            width: 1rem;
+            height: 1rem;
+            border-radius: 0.125rem;
+        }
+
+        .legend-text {
+            font-size: 0.5625rem;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+        }
+
+        .demo-remaining {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: var(--primary-orange);
+            font-weight: 900;
+            font-size: 0.75rem;
+            font-style: italic;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+        }
+
+        /* Logic Cards Section */
+        .logic-section {
+            padding: 6rem 1.5rem;
+            background-color: #0a0a0a;
+        }
+
+        .logic-grid {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: grid;
+            gap: 3rem;
+        }
+
+        @media (min-width: 768px) {
+            .logic-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .logic-card {
+            padding: 2rem;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 1.5rem;
+            transition: border-color 0.3s;
+        }
+
+        .logic-card:hover {
+            border-color: rgba(249, 115, 22, 0.5);
+        }
+
+        .logic-icon {
+            margin-bottom: 1.5rem;
+            color: var(--primary-orange);
+        }
+
+        .logic-title {
+            font-size: 1.25rem;
+            font-weight: 900;
+            font-style: italic;
+            text-transform: uppercase;
+            color: white;
+            margin-bottom: 1rem;
+            transition: color 0.3s;
+        }
+
+        .logic-card:hover .logic-title {
+            color: var(--primary-orange);
+        }
+
+        .logic-desc {
+            color: #94a3b8;
+            font-weight: 500;
+            line-height: 1.7;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            padding: 6rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+            background: linear-gradient(to bottom, var(--background-dark), black);
+        }
+
+        .cta-container {
+            max-width: 56rem;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .cta-icon-wrapper {
+            margin-bottom: 2rem;
+            display: inline-block;
+            padding: 1rem;
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+        }
+
+        .cta-title {
+            font-size: 2.5rem;
+            font-weight: 900;
+            font-style: italic;
+            text-transform: uppercase;
+            color: white;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (min-width: 768px) {
+            .cta-title {
+                font-size: 3rem;
+            }
+        }
+
+        .cta-desc {
+            color: #94a3b8;
+            font-size: 1.125rem;
+            margin-bottom: 2.5rem;
+            max-width: 36rem;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-button {
+            background-color: var(--primary-orange);
+            color: white;
+            padding: 1.25rem 2.5rem;
+            border-radius: 1rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-size: 1.125rem;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 25px 50px -12px rgba(249, 115, 22, 0.2);
+            transition: all 0.2s;
+        }
+
+        .cta-button:hover {
+            transform: scale(1.05);
+        }
+
+        /* Footer */
+        footer {
+            padding: 3rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .footer-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            .footer-container {
+                flex-direction: row;
+                justify-content: space-between;
+            }
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .footer-logo-img {
+            background: white;
+            padding: 0.25rem;
+            border-radius: 0.25rem;
+            height: 20px;
+            width: auto;
+        }
+
+        .footer-logo-text {
+            font-weight: 900;
+            letter-spacing: -0.05em;
+            color: white;
+            font-style: italic;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+        }
+
+        .footer-text {
+            color: #64748b;
+            font-size: 0.5625rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.4em;
+        }
+
+        /* Icons (SVG inline) */
+        .icon {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+        }
+
+        .icon-lg {
+            width: 28px;
+            height: 28px;
+        }
+
+        .icon-xl {
+            width: 40px;
+            height: 40px;
+        }
+
+        /* Modals */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 9998;
+        }
+
+        .modal-overlay.active {
             display: block;
         }
 
-        .user-dropdown-item {
-            padding: 1rem 1.5rem;
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: var(--card-bg);
+            border-radius: 1rem;
+            padding: 2rem;
+            z-index: 9999;
+            max-width: 500px;
+            width: 90%;
+            border: 1px solid var(--border-color);
+        }
+
+        .modal.active {
+            display: block;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            color: #94a3b8;
             cursor: pointer;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 1.5rem;
         }
 
-        .user-dropdown-item:last-child {
-            border-bottom: none;
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: white;
+            margin-bottom: 1.5rem;
         }
 
-        .user-dropdown-item:hover {
-            background-color: rgba(243, 146, 0, 0.1);
+        .form-group {
+            margin-bottom: 1rem;
         }
 
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 2rem;
-            }
+        .form-label {
+            display: block;
+            color: #94a3b8;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
 
-            .fundraisers-grid {
-                grid-template-columns: 1fr;
-            }
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: #222;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            color: white;
+            font-size: 1rem;
+        }
 
-            .nav-buttons {
-                flex-direction: column;
-                gap: 0.5rem;
-            }
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+        }
+
+        .form-button {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--primary-orange);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+
+        .form-button:hover {
+            background-color: #ea580c;
+        }
+
+        .form-link {
+            text-align: center;
+            margin-top: 1rem;
+            color: #94a3b8;
+            font-size: 0.875rem;
+        }
+
+        .form-link a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        .form-link a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
     <!-- Navigation -->
-    <nav>
-        <div class="nav-logo">
-            <img src="imgaeonlylogo.png" alt="Square Fund">
-        </div>
-        <div class="nav-buttons" id="navButtons">
-            <button class="nav-btn secondary" onclick="showSignInModal()">Sign In</button>
-            <button class="nav-btn" onclick="showSignUpModal()">Start Fundraising</button>
-        </div>
-        <div class="user-menu" id="userMenu">
-            <div class="user-avatar" id="userAvatar" onclick="toggleUserDropdown()"></div>
-            <div class="user-dropdown" id="userDropdown">
-                <div class="user-dropdown-item" onclick="goToAdmin()">My Dashboard</div>
-                <div class="user-dropdown-item" onclick="goToAccount()">My Account</div>
-                <div class="user-dropdown-item" onclick="signOut()">Sign Out</div>
+    <nav id="nav">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <img src="imgaeonlylogo.png" alt="SquareFund" class="nav-logo-img">
+                <span class="nav-logo-text">SQUARE<span>FUND</span></span>
             </div>
+
+            <div class="nav-desktop">
+                <a href="#demo" class="nav-link">
+                    <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    View Active SquareFund Boards
+                </a>
+                
+                <button class="nav-link" onclick="showSignInModal()">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    Sign In
+                </button>
+                
+                <button class="nav-btn" onclick="showSignUpModal()">
+                    Start My Own Square Fund Board Today
+                </button>
+            </div>
+
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+                <svg id="menuIcon" class="icon" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                <svg id="closeIcon" class="icon" viewBox="0 0 24 24" style="display: none;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+
+        <div id="mobileMenu" class="mobile-menu hidden">
+            <button class="nav-link" onclick="scrollToDemo()">
+                <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                View Active SquareFund Boards
+            </button>
+            <button class="nav-link" onclick="showSignInModal()">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Sign In
+            </button>
+            <button class="nav-btn" onclick="showSignUpModal()">
+                Start My Own Square Fund Board Today
+            </button>
         </div>
     </nav>
 
     <!-- Hero Section -->
-    <div class="hero">
-        <img src="imgaeonlylogo.png" alt="Square Fund" class="hero-logo">
-        <h1>Welcome to Square Fund</h1>
-        <p>Sports Fundraising Made Easy - Browse active fundraisers and purchase squares to support great causes, or start your own fundraiser today!</p>
-    </div>
+    <header class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    REPLACING THE CARDBOARD GRID
+                </div>
+                <h1 class="hero-title">
+                    DIGITAL <br>
+                    SQUARES. <br>
+                    <span>ZERO FEES.</span>
+                </h1>
+                <p class="hero-description">
+                    Create high-performance 50-square fundraisers just like AADS. No more paper grids—collect Interac e-Transfers directly and use our automated randomizer to crown winners.
+                </p>
+                
+                <div class="hero-buttons">
+                    <button class="hero-cta-primary" onclick="showSignUpModal()">
+                        Launch My Free Board
+                        <svg class="icon" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    </button>
+                    <div class="hero-feature-badge">
+                        <svg class="icon" style="color: var(--primary-orange);" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                        <span class="hero-feature-text">E-Transfer Optimized</span>
+                    </div>
+                </div>
+            </div>
 
-    <!-- Main Content -->
-    <div class="container">
-        <div class="section-header">
-            <h2>Active Fundraisers</h2>
-        </div>
-        
-        <div id="loading" class="loading">
-            <div class="spinner"></div>
-            <p>Loading fundraisers...</p>
-        </div>
+            <!-- Demo Board -->
+            <div id="demo" class="demo-board">
+                <div class="demo-board-container">
+                    <div class="demo-header">
+                        <h3 class="demo-title">AADS Square Fundraiser 2</h3>
+                        <div class="demo-price-badge">
+                            ENTRY: $5.00 PER SQUARE
+                        </div>
+                    </div>
 
-        <div id="fundraisersGrid" class="fundraisers-grid" style="display: none;">
-            <!-- Fundraiser cards will be inserted here -->
-        </div>
+                    <!-- Flyer Area -->
+                    <div class="demo-flyer" style="aspect-ratio: 16/9;">
+                        <img src="Screenshot 2026-02-01 232259.jpg" alt="Win a Custom AADS Shirt" class="demo-flyer-img">
+                        <div class="demo-flyer-caption">
+                            <p class="demo-flyer-text">AADS Event Champion Replica Shirt</p>
+                        </div>
+                    </div>
 
-        <div id="emptyState" class="empty-state" style="display: none;">
-            <div class="empty-state-icon">🎯</div>
-            <h3>No Active Fundraisers Yet</h3>
-            <p>Be the first to start a fundraiser!</p>
+                    <!-- 5x10 Grid -->
+                    <div class="demo-grid-container">
+                        <div class="demo-grid" id="demoGrid"></div>
+
+                        <!-- Legend -->
+                        <div class="demo-legend">
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #ffcc00;"></div>
+                                <span class="legend-text">Available to Purchase</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #4caf50;"></div>
+                                <span class="legend-text">Selected & Reserved</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: rgba(255, 77, 77, 0.5);"></div>
+                                <span class="legend-text">Reserved by Others</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #444;"></div>
+                                <span class="legend-text">Sold</span>
+                            </div>
+                        </div>
+
+                        <div class="demo-remaining">
+                            Squares Remaining: <span id="remaining">44</span> / 50
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
+    </header>
+
+    <!-- Logic Cards Section -->
+    <section class="logic-section">
+        <div class="logic-grid">
+            <div class="logic-card">
+                <div class="logic-icon">
+                    <svg class="icon-lg" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                </div>
+                <h3 class="logic-title">SMS Notification</h3>
+                <p class="logic-desc">Get an instant text alert the moment a square is purchased. No more checking the board every 5 minutes.</p>
+            </div>
+
+            <div class="logic-card">
+                <div class="logic-icon">
+                    <svg class="icon-lg" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                </div>
+                <h3 class="logic-title">e-Transfer Easy</h3>
+                <p class="logic-desc">Supporters pick their lucky number and send payment via Interac. Fast, secure, and no processing fees.</p>
+            </div>
+
+            <div class="logic-card">
+                <div class="logic-icon">
+                    <svg class="icon-lg" viewBox="0 0 24 24"><rect x="2" y="10" width="20" height="12" rx="2" ry="2"/><path d="M7 10V8a5 5 0 0 1 9.9-1"/></svg>
+                </div>
+                <h3 class="logic-title">Fair Randomizer</h3>
+                <p class="logic-desc">Forget the dice. Use the built-in all-in-one randomizer to generate winning numbers fairly and instantly.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="cta-container">
+            <div class="cta-icon-wrapper">
+                <svg class="icon-xl" style="color: var(--primary-orange);" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+            </div>
+            <h2 class="cta-title">READY TO WIN?</h2>
+            <p class="cta-desc">
+                Join the dozens of teams using SquareFund for a better, cleaner, and 100% free fundraising experience.
+            </p>
+            <button class="cta-button" onclick="showSignUpModal()">
+                Start My Own Square Fund Board Today
+            </button>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-logo">
+                <img src="imgaeonlylogo.png" alt="Logo" class="footer-logo-img">
+                <span class="footer-logo-text">SQUAREFUND</span>
+            </div>
+            <p class="footer-text">Sports Fundraising Made Easy • No Fees</p>
+        </div>
+    </footer>
 
     <!-- Sign In Modal -->
+    <div id="signInOverlay" class="modal-overlay"></div>
     <div id="signInModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('signInModal')">&times;</span>
-            <h2>Sign In</h2>
-            <div id="signInError" class="error-message"></div>
-            <form onsubmit="signIn(event)">
-                <div class="form-group">
-                    <label for="signInEmail">Email</label>
-                    <input type="email" id="signInEmail" required>
-                </div>
-                <div class="form-group">
-                    <label for="signInPassword">Password</label>
-                    <input type="password" id="signInPassword" required>
-                </div>
-                <button type="submit" class="submit-btn" id="signInBtn">Sign In</button>
-            </form>
-            <div class="form-footer">
-                Don't have an account? <a onclick="switchToSignUp()">Sign Up</a>
+        <button class="modal-close" onclick="closeSignInModal()">×</button>
+        <h2 class="modal-title">Sign In</h2>
+        <form id="signInForm" onsubmit="signIn(event)">
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" id="signInEmail" class="form-input" required>
             </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" id="signInPassword" class="form-input" required autocomplete="current-password">
+            </div>
+            <button type="submit" class="form-button">Sign In</button>
+        </form>
+        <div class="form-link">
+            Don't have an account? <a href="#" onclick="switchToSignUp()">Sign Up</a>
         </div>
     </div>
 
     <!-- Sign Up Modal -->
+    <div id="signUpOverlay" class="modal-overlay"></div>
     <div id="signUpModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('signUpModal')">&times;</span>
-            <h2>Create Account</h2>
-            <div id="signUpError" class="error-message"></div>
-            <form onsubmit="signUp(event)">
-                <div class="form-group">
-                    <label for="signUpName">Full Name</label>
-                    <input type="text" id="signUpName" required>
-                </div>
-                <div class="form-group">
-                    <label for="signUpOrgName">Organization Name (Optional)</label>
-                    <input type="text" id="signUpOrgName">
-                </div>
-                <div class="form-group">
-                    <label for="signUpEmail">Email</label>
-                    <input type="email" id="signUpEmail" required>
-                </div>
-                <div class="form-group">
-                    <label for="signUpPassword">Password</label>
-                    <input type="password" id="signUpPassword" required minlength="6">
-                </div>
-                <button type="submit" class="submit-btn" id="signUpBtn">Create Account</button>
-            </form>
-            <div class="form-footer">
-                Already have an account? <a onclick="switchToSignIn()">Sign In</a>
+        <button class="modal-close" onclick="closeSignUpModal()">×</button>
+        <h2 class="modal-title">Start Fundraising</h2>
+        <form id="signUpForm" onsubmit="signUp(event)">
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" id="signUpEmail" class="form-input" required autocomplete="email">
             </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" id="signUpPassword" class="form-input" required minlength="6" autocomplete="new-password">
+            </div>
+            <button type="submit" class="form-button">Create Account</button>
+        </form>
+        <div class="form-link">
+            Already have an account? <a href="#" onclick="switchToSignIn()">Sign In</a>
         </div>
     </div>
 
     <script>
-        // Initialize Supabase client
+        // Supabase Configuration
         const SUPABASE_URL = 'https://xsmrquoivqrxalxjqxdw.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzbXJxdW9pdnFyeGFseGpxeGR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2NTkxNzUsImV4cCI6MjA4NTIzNTE3NX0.uJAVb4k61Oxja15NUuiC8_TtxhzWtAC-dlh-nepTKdU';
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let currentUser = null;
-
-        // Initialize
-        async function init() {
-            await checkAuth();
-            await loadFundraisers();
-        }
-
-        // Check authentication status
-        async function checkAuth() {
-            const { data: { user } } = await supabaseClient.auth.getUser();
-            currentUser = user;
-
-            if (user) {
-                document.getElementById('navButtons').style.display = 'none';
-                document.getElementById('userMenu').style.display = 'block';
-                
-                // Set user avatar initial
-                const initial = user.email.charAt(0).toUpperCase();
-                document.getElementById('userAvatar').textContent = initial;
+        // Navigation scroll effect
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('nav');
+            if (window.scrollY > 20) {
+                nav.classList.add('scrolled');
             } else {
-                document.getElementById('navButtons').style.display = 'flex';
-                document.getElementById('userMenu').style.display = 'none';
+                nav.classList.remove('scrolled');
+            }
+        });
+
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            const menuIcon = document.getElementById('menuIcon');
+            const closeIcon = document.getElementById('closeIcon');
+            
+            menu.classList.toggle('hidden');
+            if (menu.classList.contains('hidden')) {
+                menuIcon.style.display = 'block';
+                closeIcon.style.display = 'none';
+            } else {
+                menuIcon.style.display = 'none';
+                closeIcon.style.display = 'block';
             }
         }
 
-        // Load fundraisers - Updated to use organizers table
-        async function loadFundraisers() {
-            try {
-                const { data: fundraisers, error } = await supabaseClient
-                    .from('fundraisers')
-                    .select(`
-                        *,
-                        organizers (full_name, organization_name)
-                    `)
-                    .eq('is_active', true)
-                    .order('created_at', { ascending: false });
+        // Scroll to demo
+        function scrollToDemo() {
+            document.getElementById('demo').scrollIntoView({ behavior: 'smooth' });
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.add('hidden');
+            document.getElementById('menuIcon').style.display = 'block';
+            document.getElementById('closeIcon').style.display = 'none';
+        }
 
-                if (error) {
-                    console.error('Supabase error details:', error);
-                    throw error;
-                }
+        // Demo grid
+        let selectedSquare = null;
+        const soldSquares = [4, 12, 25, 42];
+        const reservedSquares = [8, 19];
 
-                document.getElementById('loading').style.display = 'none';
-
-                if (fundraisers && fundraisers.length > 0) {
-                    document.getElementById('fundraisersGrid').style.display = 'grid';
-                    displayFundraisers(fundraisers);
+        function initDemoGrid() {
+            const grid = document.getElementById('demoGrid');
+            for (let i = 1; i <= 50; i++) {
+                const square = document.createElement('div');
+                square.className = 'demo-square';
+                square.textContent = i;
+                
+                if (soldSquares.includes(i)) {
+                    square.classList.add('sold');
+                } else if (reservedSquares.includes(i)) {
+                    square.classList.add('reserved');
                 } else {
-                    document.getElementById('emptyState').style.display = 'block';
+                    square.classList.add('available');
+                    square.onclick = () => selectDemoSquare(i);
                 }
-            } catch (error) {
-                console.error('Error loading fundraisers:', error);
-                document.getElementById('loading').innerHTML = '<p>Error loading fundraisers. Please refresh the page.</p>';
+                
+                grid.appendChild(square);
+            }
+            updateRemaining();
+        }
+
+        function selectDemoSquare(num) {
+            const squares = document.querySelectorAll('.demo-square');
+            squares.forEach(sq => {
+                if (parseInt(sq.textContent) === selectedSquare) {
+                    sq.classList.remove('selected');
+                    sq.classList.add('available');
+                }
+            });
+            
+            if (selectedSquare === num) {
+                selectedSquare = null;
+            } else {
+                selectedSquare = num;
+                squares.forEach(sq => {
+                    if (parseInt(sq.textContent) === num) {
+                        sq.classList.remove('available');
+                        sq.classList.add('selected');
+                    }
+                });
             }
         }
 
-        // Display fundraisers
-        async function displayFundraisers(fundraisers) {
-            const grid = document.getElementById('fundraisersGrid');
-            grid.innerHTML = '';
-
-            for (const fundraiser of fundraisers) {
-                // Get stats for this fundraiser
-                const { data: stats } = await supabaseClient
-                    .rpc('get_fundraiser_stats', { fundraiser_uuid: fundraiser.id });
-
-                const stat = stats && stats.length > 0 ? stats[0] : {
-                    sold_count: 0,
-                    remaining_count: 50,
-                    total_raised: 0
-                };
-
-                // Handle organizer name with null checks
-                let organizerName = 'Organizer';
-                if (fundraiser.organizers) {
-                    organizerName = fundraiser.organizers.organization_name || fundraiser.organizers.full_name || 'Organizer';
-                }
-
-                const card = document.createElement('div');
-                card.className = 'fundraiser-card';
-                card.onclick = () => goToFundraiser(fundraiser.id);
-                
-                const bannerUrl = fundraiser.banner_url || '';
-                const bannerStyle = bannerUrl 
-                    ? `background-image: url('${bannerUrl}');` 
-                    : 'background-image: linear-gradient(135deg, var(--primary-orange) 0%, #d97500 100%);';
-
-                card.innerHTML = `
-                    <div class="fundraiser-banner" style="${bannerStyle}"></div>
-                    <div class="fundraiser-content">
-                        <div class="fundraiser-title">${fundraiser.title}</div>
-                        <div class="fundraiser-organizer">by ${organizerName}</div>
-                        <div class="fundraiser-description">${fundraiser.description || 'No description provided.'}</div>
-                        <div class="fundraiser-stats">
-                            <div class="stat">
-                                <div class="stat-value">$${fundraiser.square_price.toFixed(2)}</div>
-                                <div class="stat-label">per square</div>
-                            </div>
-                            <div class="stat">
-                                <div class="stat-value">${stat.sold_count}/50</div>
-                                <div class="stat-label">sold</div>
-                            </div>
-                            <div class="stat">
-                                <div class="stat-value">$${stat.total_raised}</div>
-                                <div class="stat-label">raised</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                grid.appendChild(card);
-            }
-        }
-
-        // Navigation functions
-        function goToFundraiser(fundraiserId) {
-            window.location.href = `squares.html?id=${fundraiserId}`;
-        }
-
-        function goToAdmin() {
-            window.location.href = 'admin.html';
-        }
-
-        function goToAccount() {
-            window.location.href = 'account.html';
+        function updateRemaining() {
+            const totalUnavailable = soldSquares.length + reservedSquares.length;
+            document.getElementById('remaining').textContent = 50 - totalUnavailable;
         }
 
         // Modal functions
         function showSignInModal() {
-            document.getElementById('signInModal').style.display = 'block';
+            document.getElementById('signInModal').classList.add('active');
+            document.getElementById('signInOverlay').classList.add('active');
+        }
+
+        function closeSignInModal() {
+            document.getElementById('signInModal').classList.remove('active');
+            document.getElementById('signInOverlay').classList.remove('active');
         }
 
         function showSignUpModal() {
-            document.getElementById('signUpModal').style.display = 'block';
+            document.getElementById('signUpModal').classList.add('active');
+            document.getElementById('signUpOverlay').classList.add('active');
         }
 
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-            // Clear error messages
-            document.getElementById('signInError').style.display = 'none';
-            document.getElementById('signUpError').style.display = 'none';
+        function closeSignUpModal() {
+            document.getElementById('signUpModal').classList.remove('active');
+            document.getElementById('signUpOverlay').classList.remove('active');
         }
 
         function switchToSignUp() {
-            closeModal('signInModal');
+            closeSignInModal();
             showSignUpModal();
         }
 
         function switchToSignIn() {
-            closeModal('signUpModal');
+            closeSignUpModal();
             showSignInModal();
         }
 
-        // Authentication functions
+        // Close modals on overlay click
+        document.getElementById('signInOverlay').onclick = closeSignInModal;
+        document.getElementById('signUpOverlay').onclick = closeSignUpModal;
+
+        // Auth functions
         async function signIn(event) {
             event.preventDefault();
-            const btn = document.getElementById('signInBtn');
-            const errorDiv = document.getElementById('signInError');
-            
-            btn.disabled = true;
-            btn.textContent = 'Signing in...';
-            errorDiv.style.display = 'none';
-
             const email = document.getElementById('signInEmail').value;
             const password = document.getElementById('signInPassword').value;
 
             try {
                 const { data, error } = await supabaseClient.auth.signInWithPassword({
-                    email,
-                    password
+                    email: email,
+                    password: password,
                 });
 
                 if (error) throw error;
 
-                closeModal('signInModal');
+                alert('Sign in successful!');
                 window.location.href = 'admin.html';
             } catch (error) {
-                errorDiv.textContent = error.message;
-                errorDiv.style.display = 'block';
-                btn.disabled = false;
-                btn.textContent = 'Sign In';
+                alert('Error signing in: ' + error.message);
             }
         }
 
         async function signUp(event) {
             event.preventDefault();
-            const btn = document.getElementById('signUpBtn');
-            const errorDiv = document.getElementById('signUpError');
-            
-            btn.disabled = true;
-            btn.textContent = 'Creating account...';
-            errorDiv.style.display = 'none';
-
-            const fullName = document.getElementById('signUpName').value;
-            const organizationName = document.getElementById('signUpOrgName').value;
             const email = document.getElementById('signUpEmail').value;
             const password = document.getElementById('signUpPassword').value;
 
             try {
                 const { data, error } = await supabaseClient.auth.signUp({
-                    email,
-                    password,
-                    options: {
-                        data: {
-                            full_name: fullName,
-                            organization_name: organizationName
-                        }
-                    }
+                    email: email,
+                    password: password,
                 });
 
                 if (error) throw error;
 
-                // After signup, create the organizers table entry
-                if (data.user) {
-                    const { error: profileError } = await supabaseClient
-                        .from('organizers')
-                        .insert({
-                            id: data.user.id,
-                            email: email,
-                            full_name: fullName,
-                            organization_name: organizationName
-                        });
-
-                    if (profileError) {
-                        console.error('Profile error:', profileError);
-                        throw new Error('Failed to create organizer profile: ' + profileError.message);
-                    }
-                }
-
-                alert('Account created successfully! You can now sign in.');
-                closeModal('signUpModal');
-                showSignInModal();
+                alert('Account created! Please check your email to verify your account.');
+                closeSignUpModal();
             } catch (error) {
-                errorDiv.textContent = error.message;
-                errorDiv.style.display = 'block';
-                btn.disabled = false;
-                btn.textContent = 'Create Account';
+                alert('Error creating account: ' + error.message);
             }
         }
 
-        async function signOut() {
-            await supabaseClient.auth.signOut();
-            window.location.reload();
-        }
+        // Initialize
+        initDemoGrid();
 
-        function toggleUserDropdown() {
-            document.getElementById('userDropdown').classList.toggle('show');
-        }
-
-        // Close dropdown when clicking outside
-        window.onclick = function(event) {
-            if (!event.target.matches('.user-avatar')) {
-                const dropdown = document.getElementById('userDropdown');
-                if (dropdown.classList.contains('show')) {
-                    dropdown.classList.remove('show');
-                }
-            }
-
-            // Close modals when clicking outside
-            if (event.target.classList.contains('modal')) {
-                event.target.style.display = 'none';
+        // Check if user is already signed in
+        async function checkAuth() {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (user) {
+                window.location.href = 'admin.html';
             }
         }
 
-        // Initialize on load
-        init();
+        checkAuth();
     </script>
 </body>
 </html>
