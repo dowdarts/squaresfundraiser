@@ -1353,32 +1353,35 @@
                 const now = new Date();
                 
                 // First check if square is available - get fresh data from database
-                const { data: checkData, error: checkError } = await supabaseClient
+                let checkData = null;
+                let checkError = null;
+                
+                const result = await supabaseClient
                     .from('squares')
                     .select('sold, reserved_until, reserved_by, payment_status')
                     .eq('fundraiser_id', fundraiserId)
                     .eq('square_number', num);
                 
-                if (checkError) {
-                    console.error('Error checking square availability:', checkError);
-                    // If it's a 406 error or PGRST error, the square might not exist
-                    if (checkError.code === 'PGRST116' || checkError.message?.includes('406')) {
-                        console.warn('Square may not be initialized in database');
-                        // Try to create it
-                        await initializeSquare(num);
-                        // Retry the check
-                        const { data: retryData, error: retryError } = await supabaseClient
-                            .from('squares')
-                            .select('sold, reserved_until, reserved_by, payment_status')
-                            .eq('fundraiser_id', fundraiserId)
-                            .eq('square_number', num);
-                        
-                        if (retryError || !retryData || retryData.length === 0) {
-                            return false;
-                        }
-                        // Use the retry data
-                        checkData = retryData;
-                    } else {
+                checkData = result.data;
+                checkError = result.error;
+                
+                // If square doesn't exist, try to create it
+                if (checkError || !checkData || checkData.length === 0) {
+                    console.log('Square not in database, attempting to initialize...');
+                    await initializeSquare(num);
+                    
+                    // Retry the check after initialization
+                    const retryResult = await supabaseClient
+                        .from('squares')
+                        .select('sold, reserved_until, reserved_by, payment_status')
+                        .eq('fundraiser_id', fundraiserId)
+                        .eq('square_number', num);
+                    
+                    checkData = retryResult.data;
+                    checkError = retryResult.error;
+                    
+                    if (checkError || !checkData || checkData.length === 0) {
+                        console.error('Failed to initialize square:', checkError);
                         return false;
                     }
                 }
