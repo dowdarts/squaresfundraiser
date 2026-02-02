@@ -2,8 +2,9 @@
 -- Replace '62f3781c-f01e-4e72-a60b-ad69873287cd' with your actual fundraiser ID
 
 -- First, check which squares are missing
-SELECT generate_series(1, 50) AS square_number
-WHERE generate_series(1, 50) NOT IN (
+SELECT s.num AS missing_square_number
+FROM generate_series(1, 50) AS s(num)
+WHERE s.num NOT IN (
     SELECT square_number 
     FROM squares 
     WHERE fundraiser_id = '62f3781c-f01e-4e72-a60b-ad69873287cd'
