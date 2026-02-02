@@ -1473,7 +1473,7 @@
                                 </div>
                             </div>
                             <div class="pending-actions">
-                                <button class="btn btn-success" onclick="approvePayment('${buyer.name}', ${JSON.stringify(buyer.squares)})">
+                                <button class="btn btn-success" onclick="approvePayment('${buyer.name}', '${buyer.email}', ${JSON.stringify(buyer.squares)})">
                                     Approve
                                 </button>
                                 <button class="btn btn-danger" onclick="rejectPayment('${buyer.name}', ${JSON.stringify(buyer.squares)})">
@@ -1494,12 +1494,13 @@
         }
 
         // Approve payment
-        async function approvePayment(buyerName, squares) {
+        async function approvePayment(buyerName, buyerEmail, squares) {
             if (!confirm(`Approve payment from ${buyerName} for ${squares.length} square(s)?`)) {
                 return;
             }
 
             try {
+                // Update squares in database
                 for (const squareNum of squares) {
                     const { error } = await supabaseClient
                         .from('squares')
@@ -1515,7 +1516,32 @@
                     if (error) throw error;
                 }
 
-                alert(`✅ Payment approved for ${buyerName}!`);
+                // Send confirmation email
+                try {
+                    const fundraiser = fundraisers.find(f => f.id === currentFundraiserId);
+                    const squaresList = squares.sort((a, b) => a - b).join(', ');
+                    
+                    const { data: emailResult, error: emailError } = await supabaseClient.functions.invoke('send-confirmation-email', {
+                        body: {
+                            buyerEmail: buyerEmail,
+                            buyerName: buyerName,
+                            squares: squaresList,
+                            eventName: fundraiser.title
+                        }
+                    });
+
+                    if (emailError) {
+                        console.error('Email sending failed:', emailError);
+                        // Don't fail the whole operation if email fails
+                    } else {
+                        console.log('Confirmation email sent successfully');
+                    }
+                } catch (emailErr) {
+                    console.error('Error sending confirmation email:', emailErr);
+                    // Continue even if email fails
+                }
+
+                alert(`✅ Payment approved for ${buyerName}! Confirmation email sent.`);
                 await loadFundraiserDetails(currentFundraiserId);
                 await displayFundraisers();
 
