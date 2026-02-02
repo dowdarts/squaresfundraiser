@@ -996,19 +996,27 @@
         // Initialize a single square if it doesn't exist
         async function initializeSquare(squareNum) {
             try {
-                const { error } = await supabaseClient
+                const { data, error } = await supabaseClient
                     .from('squares')
                     .insert({
                         fundraiser_id: fundraiserId,
                         square_number: squareNum,
                         sold: false
-                    });
+                    })
+                    .select();
                 
-                if (error && !error.message?.includes('duplicate')) {
-                    console.error('Error initializing square:', error);
+                if (error) {
+                    if (!error.message?.includes('duplicate')) {
+                        console.error('Error initializing square:', error);
+                    }
+                    return false;
                 }
+                
+                console.log('Successfully initialized square:', squareNum);
+                return true;
             } catch (error) {
                 console.warn('Error in initializeSquare:', error);
+                return false;
             }
         }
 
@@ -1368,7 +1376,13 @@
                 // If square doesn't exist, try to create it
                 if (checkError || !checkData || checkData.length === 0) {
                     console.log('Square not in database, attempting to initialize...');
-                    await initializeSquare(num);
+                    const initSuccess = await initializeSquare(num);
+                    
+                    if (!initSuccess) {
+                        console.error('Failed to initialize square - you may not have permission. Please contact the organizer.');
+                        alert('This square needs to be initialized by the organizer. Please contact them or try again later.');
+                        return false;
+                    }
                     
                     // Retry the check after initialization
                     const retryResult = await supabaseClient
@@ -1381,7 +1395,8 @@
                     checkError = retryResult.error;
                     
                     if (checkError || !checkData || checkData.length === 0) {
-                        console.error('Failed to initialize square:', checkError);
+                        console.error('Failed to verify square after initialization:', checkError);
+                        alert('Could not verify square. Please refresh the page and try again.');
                         return false;
                     }
                 }
