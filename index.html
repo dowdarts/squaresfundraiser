@@ -488,6 +488,250 @@
             background-color: #0a0a0a;
         }
 
+        /* No Signup Banner */
+        .no-signup-banner {
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.15) 0%, rgba(249, 115, 22, 0.05) 100%);
+            border-top: 1px solid rgba(249, 115, 22, 0.3);
+            border-bottom: 1px solid rgba(249, 115, 22, 0.3);
+            padding: 2rem 1.5rem;
+        }
+
+        .no-signup-content {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+        }
+
+        .no-signup-content svg {
+            color: var(--primary-orange);
+            flex-shrink: 0;
+        }
+
+        .no-signup-text h3 {
+            font-size: 1.5rem;
+            font-weight: 900;
+            font-style: italic;
+            text-transform: uppercase;
+            color: white;
+            margin-bottom: 0.25rem;
+            letter-spacing: 0.05em;
+        }
+
+        .no-signup-text p {
+            color: #94a3b8;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        @media (max-width: 640px) {
+            .no-signup-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .no-signup-text h3 {
+                font-size: 1.125rem;
+            }
+        }
+
+        /* Active Fundraisers Section */
+        .active-fundraisers-section {
+            padding: 6rem 1.5rem;
+            background-color: #0a0a0a;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .fundraisers-container {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        .fundraisers-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 900;
+            font-style: italic;
+            text-transform: uppercase;
+            color: white;
+            margin-bottom: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .section-title {
+                font-size: 3rem;
+            }
+        }
+
+        .section-subtitle {
+            color: #94a3b8;
+            font-size: 1.125rem;
+        }
+
+        .fundraisers-grid {
+            display: grid;
+            gap: 2rem;
+            grid-template-columns: 1fr;
+        }
+
+        @media (min-width: 640px) {
+            .fundraisers-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .fundraisers-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .fundraiser-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 1.5rem;
+            overflow: hidden;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .fundraiser-card:hover {
+            border-color: var(--primary-orange);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 50px -12px rgba(249, 115, 22, 0.3);
+        }
+
+        .fundraiser-banner {
+            width: 100%;
+            aspect-ratio: 16/9;
+            object-fit: cover;
+            background-color: #1a1a1a;
+        }
+
+        .fundraiser-content {
+            padding: 1.5rem;
+        }
+
+        .fundraiser-title {
+            font-size: 1.25rem;
+            font-weight: 900;
+            font-style: italic;
+            text-transform: uppercase;
+            color: white;
+            margin-bottom: 0.75rem;
+        }
+
+        .fundraiser-desc {
+            color: #94a3b8;
+            font-size: 0.875rem;
+            margin-bottom: 1.25rem;
+            line-height: 1.6;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .fundraiser-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+            border-top: 1px solid var(--border-color);
+            margin-bottom: 1rem;
+        }
+
+        .fundraiser-price {
+            color: var(--primary-orange);
+            font-weight: 900;
+            font-style: italic;
+            font-size: 1.125rem;
+        }
+
+        .fundraiser-remaining {
+            color: #94a3b8;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .fundraiser-btn {
+            width: 100%;
+            background-color: var(--primary-orange);
+            color: white;
+            padding: 0.875rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 0.875rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .fundraiser-btn:hover {
+            background-color: #ea580c;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(249, 115, 22, 0.4);
+        }
+
+        .fundraiser-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .fundraisers-loading {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 4rem 0;
+            color: #94a3b8;
+        }
+
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid rgba(249, 115, 22, 0.2);
+            border-top-color: var(--primary-orange);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .fundraisers-empty {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 4rem 0;
+            color: #94a3b8;
+        }
+
+        .fundraisers-empty p {
+            margin-top: 1rem;
+            font-size: 1.125rem;
+        }
+
+        .fundraisers-empty .cta-button {
+            margin-top: 1.5rem;
+        }
+
+        .fundraisers-empty svg {
+            color: #475569;
+        }
+
         .logic-grid {
             max-width: 1280px;
             margin: 0 auto;
@@ -1052,6 +1296,44 @@
         </div>
     </header>
 
+    <!-- No Signup Banner -->
+    <div class="no-signup-banner">
+        <div class="no-signup-content">
+            <svg class="icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                <path d="M9 12l2 2 4-4"/>
+            </svg>
+            <div class="no-signup-text">
+                <h3>PURCHASE SQUARES • NO SIGN UP</h3>
+                <p>100% Hassle Free • Zero Fees • Instant Access</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Fundraisers Section -->
+    <section class="active-fundraisers-section">
+        <div class="fundraisers-container">
+            <div class="fundraisers-header">
+                <h2 class="section-title">ACTIVE FUNDRAISERS</h2>
+                <p class="section-subtitle">Browse live boards and support your favorite teams</p>
+            </div>
+            <div id="fundraisersGrid" class="fundraisers-grid">
+                <!-- Loading state -->
+                <div class="fundraisers-loading">
+                    <div class="loading-spinner"></div>
+                    <p>Loading active fundraisers...</p>
+                </div>
+            </div>
+            <div id="fundraisersEmpty" class="fundraisers-empty" style="display: none;">
+                <svg class="icon-xl" style="color: #475569;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                <p>No active fundraisers at the moment</p>
+                <button class="cta-button" style="margin-top: 1.5rem;" onclick="showSignUpModal()">
+                    Create Your Own Board
+                </button>
+            </div>
+        </div>
+    </section>
+
     <!-- Logic Cards Section -->
     <section class="logic-section">
         <div class="logic-grid">
@@ -1376,16 +1658,81 @@
 
         // Initialize
         initDemoGrid();
+        loadActiveFundraisers();
 
-        // Check if user is already signed in
+        // Check if user is already signed in (no longer auto-redirects)
         async function checkAuth() {
             const { data: { user } } = await supabaseClient.auth.getUser();
-            if (user) {
-                window.location.href = 'admin.html';
-            }
+            // Allow signed-in users to view landing page
+            // They can navigate to admin via the nav button
         }
 
         checkAuth();
+
+        // Load active fundraisers
+        async function loadActiveFundraisers() {
+            const grid = document.getElementById('fundraisersGrid');
+            const emptyState = document.getElementById('fundraisersEmpty');
+
+            try {
+                // Query active fundraisers with squares count
+                const { data: fundraisers, error } = await supabaseClient
+                    .from('fundraisers')
+                    .select('*, squares(square_number, sold)')
+                    .eq('is_active', true)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                // Clear loading state
+                grid.innerHTML = '';
+
+                if (!fundraisers || fundraisers.length === 0) {
+                    emptyState.style.display = 'block';
+                    return;
+                }
+
+                // Render fundraiser cards
+                fundraisers.forEach(fundraiser => {
+                    const soldCount = fundraiser.squares?.filter(s => s.sold).length || 0;
+                    const remainingCount = 50 - soldCount;
+                    const fundraiserUrl = `squares.html?id=${fundraiser.id}`;
+
+                    const card = document.createElement('div');
+                    card.className = 'fundraiser-card';
+                    card.onclick = () => {
+                        window.location.href = fundraiserUrl;
+                    };
+
+                    // Use banner or fallback to default logo
+                    const bannerUrl = fundraiser.banner_url || 'imgaeonlylogo.png';
+
+                    card.innerHTML = `
+                        <img src="${bannerUrl}" alt="${fundraiser.title}" class="fundraiser-banner" onerror="this.src='imgaeonlylogo.png'">
+                        <div class="fundraiser-content">
+                            <h3 class="fundraiser-title">${fundraiser.title}</h3>
+                            <p class="fundraiser-desc">${fundraiser.description || 'Support this fundraiser!'}</p>
+                            <div class="fundraiser-stats">
+                                <span class="fundraiser-price">$${fundraiser.square_price.toFixed(2)}</span>
+                                <span class="fundraiser-remaining">${remainingCount} / 50 left</span>
+                            </div>
+                            <button class="fundraiser-btn" onclick="event.stopPropagation(); window.location.href='${fundraiserUrl}'">
+                                View Board
+                                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="5" y1="12" x2="19" y2="12"/>
+                                    <polyline points="12 5 19 12 12 19"/>
+                                </svg>
+                            </button>
+                        </div>
+                    `;
+
+                    grid.appendChild(card);
+                });
+            } catch (error) {
+                console.error('Error loading fundraisers:', error);
+                grid.innerHTML = '<div class="fundraisers-loading"><p style="color: #ff4d4d;">Error loading fundraisers. Please try again.</p></div>';
+            }
+        }
     </script>
 </body>
 </html>
