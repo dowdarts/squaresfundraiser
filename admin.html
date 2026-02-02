@@ -1593,20 +1593,30 @@
                 // Handle banner upload
                 const bannerFile = document.getElementById('settingsBannerFile').files[0];
                 if (bannerFile) {
-                    const fileExt = bannerFile.name.split('.').pop();
-                    const fileName = `${currentUser.id}/${currentFundraiserId}.${fileExt}`;
+                    try {
+                        const fileExt = bannerFile.name.split('.').pop();
+                        const fileName = `${currentUser.id}/${currentFundraiserId}.${fileExt}`;
 
-                    const { error: uploadError } = await supabaseClient.storage
-                        .from('fundraiser-banners')
-                        .upload(fileName, bannerFile, { upsert: true });
+                        const { error: uploadError } = await supabaseClient.storage
+                            .from('fundraiser-banners')
+                            .upload(fileName, bannerFile, { upsert: true });
 
-                    if (uploadError) throw uploadError;
+                        if (uploadError) {
+                            console.warn('Banner upload skipped:', uploadError);
+                            messageDiv.className = 'message error show';
+                            messageDiv.textContent = '⚠️ Settings saved but banner upload failed. Storage bucket not configured.';
+                            messageDiv.style.display = 'block';
+                        } else {
+                            const { data: { publicUrl } } = supabaseClient.storage
+                                .from('fundraiser-banners')
+                                .getPublicUrl(fileName);
 
-                    const { data: { publicUrl } } = supabaseClient.storage
-                        .from('fundraiser-banners')
-                        .getPublicUrl(fileName);
-
-                    updates.banner_url = publicUrl;
+                            updates.banner_url = publicUrl;
+                        }
+                    } catch (bannerError) {
+                        console.warn('Banner upload error:', bannerError);
+                        // Continue saving other settings
+                    }
                 }
 
                 const { error } = await supabaseClient
@@ -1715,22 +1725,30 @@
                 // Handle banner upload if provided
                 const bannerFile = document.getElementById('createBannerUpload').files[0];
                 if (bannerFile) {
-                    btn.textContent = 'Uploading banner...';
-                    const fileExt = bannerFile.name.split('.').pop();
-                    const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-                    const filePath = `fundraiser-banners/${fileName}`;
-                    
-                    const { error: uploadError } = await supabaseClient.storage
-                        .from('fundraiser-images')
-                        .upload(filePath, bannerFile);
+                    try {
+                        btn.textContent = 'Uploading banner...';
+                        const fileExt = bannerFile.name.split('.').pop();
+                        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+                        const filePath = `fundraiser-banners/${fileName}`;
+                        
+                        const { error: uploadError } = await supabaseClient.storage
+                            .from('fundraiser-images')
+                            .upload(filePath, bannerFile);
 
-                    if (uploadError) throw uploadError;
+                        if (uploadError) {
+                            console.warn('Banner upload skipped:', uploadError);
+                            // Continue without banner - it can be added later in settings
+                        } else {
+                            const { data: { publicUrl } } = supabaseClient.storage
+                                .from('fundraiser-images')
+                                .getPublicUrl(filePath);
 
-                    const { data: { publicUrl } } = supabaseClient.storage
-                        .from('fundraiser-images')
-                        .getPublicUrl(filePath);
-
-                    fundraiserData.banner_url = publicUrl;
+                            fundraiserData.banner_url = publicUrl;
+                        }
+                    } catch (bannerError) {
+                        console.warn('Banner upload failed:', bannerError);
+                        // Continue without banner
+                    }
                 }
 
                 btn.textContent = 'Creating fundraiser...';
