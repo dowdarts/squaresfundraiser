@@ -1521,6 +1521,9 @@
                     const fundraiser = fundraisers.find(f => f.id === currentFundraiserId);
                     const squaresList = squares.sort((a, b) => a - b).join(', ');
                     
+                    console.log('Attempting to send email to:', buyerEmail);
+                    console.log('Email payload:', { buyerEmail, buyerName, squares: squaresList, eventName: fundraiser.title });
+                    
                     const { data: emailResult, error: emailError } = await supabaseClient.functions.invoke('send-confirmation-email', {
                         body: {
                             buyerEmail: buyerEmail,
@@ -1531,14 +1534,17 @@
                     });
 
                     if (emailError) {
-                        console.error('Email sending failed:', emailError);
-                        // Don't fail the whole operation if email fails
+                        console.error('❌ Email sending failed:', emailError);
+                        console.error('Error details:', JSON.stringify(emailError, null, 2));
+                        alert(`⚠️ Payment approved, but email failed to send: ${emailError.message || 'Unknown error'}`);
                     } else {
-                        console.log('Confirmation email sent successfully');
+                        console.log('✅ Confirmation email sent successfully!');
+                        console.log('Email result:', emailResult);
                     }
                 } catch (emailErr) {
-                    console.error('Error sending confirmation email:', emailErr);
-                    // Continue even if email fails
+                    console.error('❌ Error sending confirmation email:', emailErr);
+                    console.error('Full error:', JSON.stringify(emailErr, null, 2));
+                    alert(`⚠️ Payment approved, but email error: ${emailErr.message || 'Unknown error'}`);
                 }
 
                 alert(`✅ Payment approved for ${buyerName}! Confirmation email sent.`);
@@ -1547,7 +1553,7 @@
 
             } catch (error) {
                 console.error('Error approving payment:', error);
-                alert('Error: ' + error.message);
+                alert('Error approving payment: ' + error.message);
             }
         }
 
