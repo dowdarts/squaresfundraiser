@@ -1331,35 +1331,47 @@
         async function reserveSquare(num, duration) {
             try {
                 const reserveUntil = new Date(Date.now() + duration * 1000).toISOString();
-                const now = new Date().toISOString();
+                const now = new Date();
                 
-                // First check if square is available
-                const { data: checkData } = await supabaseClient
+                // First check if square is available - get fresh data from database
+                const { data: checkData, error: checkError } = await supabaseClient
                     .from('squares')
                     .select('sold, reserved_until, reserved_by, payment_status')
                     .eq('fundraiser_id', fundraiserId)
-                    .eq('square_number', num);
+                    .eq('square_number', num)
+                    .single();
                 
-                if (!checkData || checkData.length === 0 || checkData[0].sold) {
+                if (checkError || !checkData) {
+                    console.error('Error checking square availability:', checkError);
+                    return false;
+                }
+                
+                // Check if sold
+                if (checkData.sold) {
+                    console.log('Square is sold');
                     return false;
                 }
                 
                 // Check if square is awaiting payment approval
-                if (checkData[0].payment_status === 'pending') {
+                if (checkData.payment_status === 'pending') {
+                    console.log('Square is awaiting payment approval');
                     return false;
                 }
                 
                 // Check if square is currently reserved by someone else and reservation hasn't expired
-                if (checkData[0].reserved_until && checkData[0].reserved_by !== sessionId) {
-                    const reservedUntilDate = new Date(checkData[0].reserved_until);
-                    if (reservedUntilDate > new Date()) {
+                if (checkData.reserved_until && checkData.reserved_by !== sessionId) {
+                    const reservedUntilDate = new Date(checkData.reserved_until);
+                    console.log('Square reserved until:', reservedUntilDate, 'Now:', now, 'Expired:', reservedUntilDate <= now);
+                    if (reservedUntilDate > now) {
                         // Still reserved by someone else
                         return false;
                     }
                 }
                 
-                // Now try to reserve it - only if not sold AND (not reserved OR reservation expired OR it's our own reservation)
-                const { data: updateResult, error } = await supabaseClient
+                // Now try to reserve it
+                // We already validated above that it's available, expired, or ours
+                // So we can safely attempt the update
+                const { data: updateResult, error, count } = await supabaseClient
                     .from('squares')
                     .update({ 
                         reserved_until: reserveUntil,
@@ -1368,8 +1380,6 @@
                     .eq('fundraiser_id', fundraiserId)
                     .eq('square_number', num)
                     .eq('sold', false)
-                    .is('payment_status', null)  // Not awaiting payment
-                    .or(`reserved_until.is.null,reserved_until.lt.${now},reserved_by.eq.${sessionId}`)  // Not reserved, expired, or ours
                     .select();
                 
                 if (error) {
@@ -1377,9 +1387,15 @@
                     return false;
                 }
                 
-                // Check if update was successful (row was actually updated)
+                // Double-check the result to ensure update succeeded
                 if (!updateResult || updateResult.length === 0) {
-                    console.log('Failed to reserve - square may be taken by someone else');
+                    console.log('Failed to reserve - square may have been taken in a race condition');
+                    return false;
+                }
+                
+                // Verify the reservation is actually ours
+                if (updateResult[0].reserved_by !== sessionId) {
+                    console.log('Failed to reserve - belongs to another user');
                     return false;
                 }
                 
