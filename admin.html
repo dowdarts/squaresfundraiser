@@ -840,6 +840,99 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Lottery Styles */
+        .lottery-section {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .lottery-controls {
+            background: #1a1a1a;
+            padding: 2rem;
+            border-radius: 2rem;
+            text-align: center;
+        }
+
+        .lottery-controls h3 {
+            font-size: 1.5rem;
+            font-weight: 900;
+            font-style: italic;
+            text-transform: uppercase;
+            letter-spacing: -0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .lottery-status {
+            margin: 1.5rem 0;
+        }
+
+        .btn-large {
+            font-size: 1.25rem;
+            padding: 1.25rem 3rem;
+            border-radius: 2rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .btn-icon {
+            font-size: 1.5rem;
+        }
+
+        .winner-card {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            border-radius: 2rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 40px rgba(255, 215, 0, 0.3);
+        }
+
+        .winner-card-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .winner-card-header h3 {
+            font-size: 2rem;
+            font-weight: 900;
+            font-style: italic;
+            text-transform: uppercase;
+            letter-spacing: -0.05em;
+            color: #000;
+        }
+
+        .winner-card-body {
+            text-align: center;
+        }
+
+        .winner-square-number {
+            font-size: 6rem;
+            font-weight: 900;
+            color: #000;
+            line-height: 1;
+            margin-bottom: 1rem;
+        }
+
+        .winner-buyer-name {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #f97316;
+            background: rgba(0, 0, 0, 0.1);
+            padding: 1rem 2rem;
+            border-radius: 1rem;
+            display: inline-block;
+        }
+
+        @media (max-width: 768px) {
+            .winner-square-number {
+                font-size: 4rem;
+            }
+
+            .winner-buyer-name {
+                font-size: 1.5rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -903,6 +996,7 @@
                     <button class="tab-btn active" onclick="switchTab('overview')">Overview</button>
                     <button class="tab-btn" onclick="switchTab('settings')">Settings</button>
                     <button class="tab-btn" onclick="switchTab('payments')">Pending Payments</button>
+                    <button class="tab-btn" onclick="switchTab('lottery')">Draw Winner</button>
                 </div>
 
                 <!-- Overview Tab -->
@@ -995,6 +1089,43 @@
                     <div class="loading">
                         <div class="spinner"></div>
                         <p style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; color: #64748b;">Loading payments...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Draw Winner Tab -->
+            <div id="tab-lottery" class="tab-content">
+                <div class="lottery-section">
+                    <div id="currentWinnerDisplay" style="display: none;">
+                        <div class="winner-card">
+                            <div class="winner-card-header">
+                                <h3>🏆 Current Winner</h3>
+                            </div>
+                            <div class="winner-card-body">
+                                <div class="winner-square-number" id="currentWinnerNumber">-</div>
+                                <div class="winner-buyer-name" id="currentWinnerName">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="lottery-controls">
+                        <h3>Lottery Draw</h3>
+                        <p style="color: #94a3b8; margin-bottom: 1.5rem;">Run the lottery to randomly select a winner from all sold squares. The winner will be displayed on the public page.</p>
+                        
+                        <div class="lottery-status" id="lotteryStatus">
+                            <div class="stat-box" style="text-align: left;">
+                                <div class="stat-box-label" style="margin-bottom: 0.5rem;">Eligible Squares</div>
+                                <div class="stat-box-value" id="eligibleSquaresCount">0</div>
+                                <div class="form-helper" style="margin-top: 0.5rem;">Sold squares that can win</div>
+                            </div>
+                        </div>
+
+                        <button id="runLotteryBtn" class="btn btn-primary btn-large" onclick="runLottery()" disabled>
+                            <span class="btn-icon">🎰</span>
+                            <span>Draw Winner</span>
+                        </button>
+
+                        <div id="lotteryMessage" class="message" style="margin-top: 1rem;"></div>
                     </div>
                 </div>
             </div>
@@ -1400,6 +1531,11 @@
             
             event.target.classList.add('active');
             document.getElementById('tab-' + tabName).classList.add('active');
+
+            // Load lottery data when switching to lottery tab
+            if (tabName === 'lottery') {
+                loadLotteryData();
+            }
         }
 
         // Save fundraiser settings
@@ -1630,6 +1766,149 @@
                 return;
             }
             window.open(`squares.html?id=${currentFundraiserId}`, '_blank');
+        }
+
+        // Load lottery data
+        async function loadLotteryData() {
+            try {
+                // Get sold squares count
+                const { data: soldSquares, error } = await supabaseClient
+                    .from('squares')
+                    .select('square_number, buyer_name')
+                    .eq('fundraiser_id', currentFundraiserId)
+                    .eq('sold', true)
+                    .gt('square_number', 0);
+
+                if (error) throw error;
+
+                const eligibleCount = soldSquares ? soldSquares.length : 0;
+                document.getElementById('eligibleSquaresCount').textContent = eligibleCount;
+                document.getElementById('runLotteryBtn').disabled = eligibleCount === 0;
+
+                // Check for existing winner (square_number = 0)
+                const { data: winnerData } = await supabaseClient
+                    .from('squares')
+                    .select('square_number, buyer_name')
+                    .eq('fundraiser_id', currentFundraiserId)
+                    .eq('square_number', 0)
+                    .single();
+
+                if (winnerData && winnerData.buyer_name) {
+                    // Parse the winner data (format: "Square #X: Name")
+                    const match = winnerData.buyer_name.match(/Square #(\d+): (.+)/);
+                    if (match) {
+                        document.getElementById('currentWinnerNumber').textContent = match[1];
+                        document.getElementById('currentWinnerName').textContent = match[2];
+                        document.getElementById('currentWinnerDisplay').style.display = 'block';
+                    }
+                } else {
+                    document.getElementById('currentWinnerDisplay').style.display = 'none';
+                }
+
+            } catch (error) {
+                console.error('Error loading lottery data:', error);
+            }
+        }
+
+        // Run lottery
+        async function runLottery() {
+            const btn = document.getElementById('runLotteryBtn');
+            const messageDiv = document.getElementById('lotteryMessage');
+            
+            if (!confirm('🎰 Are you ready to draw the winner? This will broadcast the animation to all viewers!')) {
+                return;
+            }
+
+            btn.disabled = true;
+            messageDiv.className = 'message';
+            messageDiv.style.display = 'none';
+
+            try {
+                // Get all sold squares
+                const { data: soldSquares, error } = await supabaseClient
+                    .from('squares')
+                    .select('square_number, buyer_name')
+                    .eq('fundraiser_id', currentFundraiserId)
+                    .eq('sold', true)
+                    .gt('square_number', 0);
+
+                if (error) throw error;
+
+                if (!soldSquares || soldSquares.length === 0) {
+                    throw new Error('No sold squares to draw from!');
+                }
+
+                // Broadcast lottery start
+                await supabaseClient.channel('lottery_broadcast').send({
+                    type: 'broadcast',
+                    event: 'lottery_start',
+                    payload: {}
+                });
+
+                // Animate through random squares
+                const totalFlashes = 20;
+                const flashDelay = 150;
+
+                for (let i = 0; i < totalFlashes; i++) {
+                    await new Promise(resolve => setTimeout(resolve, flashDelay));
+                    
+                    // Pick random squares to highlight
+                    const numToHighlight = Math.min(5, soldSquares.length);
+                    const randomSquares = [];
+                    for (let j = 0; j < numToHighlight; j++) {
+                        const randomSquare = soldSquares[Math.floor(Math.random() * soldSquares.length)];
+                        randomSquares.push(randomSquare.square_number);
+                    }
+
+                    // Broadcast highlight
+                    await supabaseClient.channel('lottery_broadcast').send({
+                        type: 'broadcast',
+                        event: 'lottery_highlight',
+                        payload: { squares: randomSquares }
+                    });
+                }
+
+                // Select final winner
+                await new Promise(resolve => setTimeout(resolve, 500));
+                const winner = soldSquares[Math.floor(Math.random() * soldSquares.length)];
+
+                // Broadcast winner
+                await supabaseClient.channel('lottery_broadcast').send({
+                    type: 'broadcast',
+                    event: 'lottery_winner',
+                    payload: { 
+                        winner: winner.square_number,
+                        name: winner.buyer_name
+                    }
+                });
+
+                // Save winner to database (square_number = 0 is special row for winner)
+                const { error: saveError } = await supabaseClient
+                    .from('squares')
+                    .update({
+                        buyer_name: `Square #${winner.square_number}: ${winner.buyer_name}`,
+                        sold: true
+                    })
+                    .eq('fundraiser_id', currentFundraiserId)
+                    .eq('square_number', 0);
+
+                if (saveError) throw saveError;
+
+                messageDiv.className = 'message success';
+                messageDiv.style.display = 'block';
+                messageDiv.textContent = `🎉 Winner: Square #${winner.square_number} - ${winner.buyer_name}`;
+
+                // Reload lottery data to show winner
+                await loadLotteryData();
+
+            } catch (error) {
+                console.error('Error running lottery:', error);
+                messageDiv.className = 'message error';
+                messageDiv.style.display = 'block';
+                messageDiv.textContent = '❌ Error: ' + error.message;
+            } finally {
+                btn.disabled = false;
+            }
         }
 
         // Initialize on load
