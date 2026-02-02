@@ -304,7 +304,7 @@
 
         .fundraiser-card-stats {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 1rem;
             border-top: 1px solid var(--border-color);
             padding-top: 2rem;
@@ -315,9 +315,9 @@
             text-align: center;
         }
 
-        .stat:nth-child(2) {
+        .stat:nth-child(2),
+        .stat:nth-child(3) {
             border-left: 1px solid var(--border-color);
-            border-right: 1px solid var(--border-color);
         }
 
         .stat-value {
@@ -328,6 +328,10 @@
 
         .stat-value.highlight {
             color: var(--primary-orange);
+        }
+
+        .stat-value.pending {
+            color: #fbbf24;
         }
 
         .stat-label {
@@ -1262,6 +1266,15 @@
                 const { data: stats } = await supabaseClient
                     .rpc('get_fundraiser_stats', { fundraiser_uuid: fundraiser.id });
 
+                // Get pending count
+                const { data: pendingSquares } = await supabaseClient
+                    .from('squares')
+                    .select('square_number')
+                    .eq('fundraiser_id', fundraiser.id)
+                    .eq('payment_status', 'pending');
+
+                const pendingCount = pendingSquares ? pendingSquares.length : 0;
+
                 const stat = stats && stats.length > 0 ? stats[0] : {
                     sold_count: 0,
                     remaining_count: 50,
@@ -1294,6 +1307,10 @@
                         <div class="stat">
                             <div class="stat-value">${stat.sold_count}</div>
                             <div class="stat-label">Sold</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value ${pendingCount > 0 ? 'pending' : ''}">${pendingCount}</div>
+                            <div class="stat-label">Pending</div>
                         </div>
                         <div class="stat">
                             <div class="stat-value">${stat.remaining_count}</div>
