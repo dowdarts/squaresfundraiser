@@ -1,0 +1,59 @@
+# Banner Image Storage Setup
+
+## Quick Setup (2 minutes)
+
+To enable banner images for your fundraisers, you need to create a storage bucket in Supabase.
+
+### Step 1: Create the Storage Bucket
+1. Go to your Supabase dashboard
+2. Click **Storage** in the left sidebar
+3. Click **Create a new bucket**
+4. Name it: `fundraiser-banners`
+5. Make it **Public** (toggle ON)
+6. Click **Create bucket**
+
+### Step 2: Set Permissions (Important!)
+1. Click on the `fundraiser-banners` bucket
+2. Go to **Policies** tab
+3. Click **New Policy**
+4. Choose **For full customization** template
+5. Add these two policies:
+
+**Policy 1 - Allow Public Read:**
+- Name: `Public read access`
+- Allowed operation: `SELECT`
+- Policy definition: `true`
+
+**Policy 2 - Allow Authenticated Upload:**
+- Name: `Authenticated users can upload`
+- Allowed operation: `INSERT`
+- Policy definition: `(bucket_id = 'fundraiser-banners') AND (auth.role() = 'authenticated')`
+
+**Policy 3 - Allow Authenticated Update:**
+- Name: `Authenticated users can update`
+- Allowed operation: `UPDATE`
+- Policy definition: `(bucket_id = 'fundraiser-banners') AND (auth.role() = 'authenticated')`
+
+### Step 3: Test It!
+1. Go to your admin dashboard
+2. Create or edit a fundraiser
+3. Upload a banner image
+4. It should work now! 🎉
+
+## Troubleshooting
+
+If you still can't create a bucket:
+- **Free tier limit reached**: Supabase free tier allows limited storage. You may need to upgrade.
+- **Use external hosting**: Upload your banner to Imgur, Cloudinary, or GitHub and paste the URL in the database manually.
+
+## Alternative: Manual Banner URLs
+
+If you can't set up storage, you can manually add banner URLs:
+1. Upload your image to any image hosting service (Imgur, Cloudinary, etc.)
+2. Get the public URL
+3. Go to Supabase dashboard → Table Editor → `fundraisers` table
+4. Find your fundraiser row
+5. Edit the `banner_url` column and paste the URL
+6. Save!
+
+Your banner will now appear on the fundraiser page.
