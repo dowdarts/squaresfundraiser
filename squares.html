@@ -1338,29 +1338,35 @@
                     .from('squares')
                     .select('sold, reserved_until, reserved_by, payment_status')
                     .eq('fundraiser_id', fundraiserId)
-                    .eq('square_number', num)
-                    .single();
+                    .eq('square_number', num);
                 
-                if (checkError || !checkData) {
+                if (checkError) {
                     console.error('Error checking square availability:', checkError);
                     return false;
                 }
                 
+                if (!checkData || checkData.length === 0) {
+                    console.log('Square not found in database');
+                    return false;
+                }
+                
+                const square = checkData[0];
+                
                 // Check if sold
-                if (checkData.sold) {
+                if (square.sold) {
                     console.log('Square is sold');
                     return false;
                 }
                 
                 // Check if square is awaiting payment approval
-                if (checkData.payment_status === 'pending') {
+                if (square.payment_status === 'pending') {
                     console.log('Square is awaiting payment approval');
                     return false;
                 }
                 
                 // Check if square is currently reserved by someone else and reservation hasn't expired
-                if (checkData.reserved_until && checkData.reserved_by !== sessionId) {
-                    const reservedUntilDate = new Date(checkData.reserved_until);
+                if (square.reserved_until && square.reserved_by !== sessionId) {
+                    const reservedUntilDate = new Date(square.reserved_until);
                     console.log('Square reserved until:', reservedUntilDate, 'Now:', now, 'Expired:', reservedUntilDate <= now);
                     if (reservedUntilDate > now) {
                         // Still reserved by someone else
