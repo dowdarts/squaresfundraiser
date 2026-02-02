@@ -16,23 +16,39 @@ To enable banner images for your fundraisers, you need to create a storage bucke
 1. Click on the `fundraiser-banners` bucket
 2. Go to **Policies** tab
 3. Click **New Policy**
-4. Choose **For full customization** template
-5. Add these two policies:
 
 **Policy 1 - Allow Public Read:**
-- Name: `Public read access`
-- Allowed operation: `SELECT`
-- Policy definition: `true`
+1. Click **New Policy**
+2. Select **For full customization**
+3. Name: `Public read access`
+4. Allowed operation: **SELECT**
+5. Policy definition (copy exactly, no backticks):
+```
+true
+```
+6. Click **Review** then **Save policy**
 
 **Policy 2 - Allow Authenticated Upload:**
-- Name: `Authenticated users can upload`
-- Allowed operation: `INSERT`
-- Policy definition: `(bucket_id = 'fundraiser-banners') AND (auth.role() = 'authenticated')`
+1. Click **New Policy**
+2. Select **For full customization**
+3. Name: `Authenticated users can upload`
+4. Allowed operation: **INSERT**
+5. Policy definition (copy exactly, no backticks):
+```
+(bucket_id = 'fundraiser-banners') AND (auth.role() = 'authenticated')
+```
+6. Click **Review** then **Save policy**
 
 **Policy 3 - Allow Authenticated Update:**
-- Name: `Authenticated users can update`
-- Allowed operation: `UPDATE`
-- Policy definition: `(bucket_id = 'fundraiser-banners') AND (auth.role() = 'authenticated')`
+1. Click **New Policy**
+2. Select **For full customization**
+3. Name: `Authenticated users can update`
+4. Allowed operation: **UPDATE**
+5. Policy definition (copy exactly, no backticks):
+```
+(bucket_id = 'fundraiser-banners') AND (auth.role() = 'authenticated')
+```
+6. Click **Review** then **Save policy**
 
 ### Step 3: Test It!
 1. Go to your admin dashboard
