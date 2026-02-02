@@ -993,6 +993,25 @@
             }
         }
 
+        // Initialize a single square if it doesn't exist
+        async function initializeSquare(squareNum) {
+            try {
+                const { error } = await supabaseClient
+                    .from('squares')
+                    .insert({
+                        fundraiser_id: fundraiserId,
+                        square_number: squareNum,
+                        sold: false
+                    });
+                
+                if (error && !error.message?.includes('duplicate')) {
+                    console.error('Error initializing square:', error);
+                }
+            } catch (error) {
+                console.warn('Error in initializeSquare:', error);
+            }
+        }
+
         // Load fundraiser details
         async function loadFundraiser() {
             if (!fundraiserId) {
@@ -1342,7 +1361,26 @@
                 
                 if (checkError) {
                     console.error('Error checking square availability:', checkError);
-                    return false;
+                    // If it's a 406 error or PGRST error, the square might not exist
+                    if (checkError.code === 'PGRST116' || checkError.message?.includes('406')) {
+                        console.warn('Square may not be initialized in database');
+                        // Try to create it
+                        await initializeSquare(num);
+                        // Retry the check
+                        const { data: retryData, error: retryError } = await supabaseClient
+                            .from('squares')
+                            .select('sold, reserved_until, reserved_by, payment_status')
+                            .eq('fundraiser_id', fundraiserId)
+                            .eq('square_number', num);
+                        
+                        if (retryError || !retryData || retryData.length === 0) {
+                            return false;
+                        }
+                        // Use the retry data
+                        checkData = retryData;
+                    } else {
+                        return false;
+                    }
                 }
                 
                 if (!checkData || checkData.length === 0) {
