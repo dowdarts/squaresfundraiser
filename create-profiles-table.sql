@@ -12,6 +12,11 @@ CREATE TABLE IF NOT EXISTS profiles (
 -- Enable Row Level Security
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Users can view own profile" ON profiles;
+DROP POLICY IF EXISTS "Users can insert own profile" ON profiles;
+DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
+
 -- Policy: Users can view their own profile
 CREATE POLICY "Users can view own profile"
 ON profiles FOR SELECT
@@ -42,6 +47,9 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Drop existing trigger if it exists
+DROP TRIGGER IF EXISTS profiles_updated_at_trigger ON profiles;
 
 CREATE TRIGGER profiles_updated_at_trigger
     BEFORE UPDATE ON profiles
