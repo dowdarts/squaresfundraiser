@@ -1244,16 +1244,36 @@
                 return;
             }
             
-            // Check if reserved by someone else OR awaiting payment approval
-            // But also check if the reservation has expired
-            if (pendingSquares.has(num) && !myReservedSquares.has(num)) {
-                const reservedUntil = pendingSquares.get(num);
-                if (reservedUntil && reservedUntil > new Date()) {
-                    alert("This square is currently reserved or awaiting payment approval. Please choose another!");
+            // First do a quick database check to ensure square is truly available
+            const { data: quickCheck } = await supabaseClient
+                .from('squares')
+                .select('sold, payment_status, reserved_until, reserved_by')
+                .eq('fundraiser_id', fundraiserId)
+                .eq('square_number', num);
+            
+            if (quickCheck && quickCheck.length > 0) {
+                const square = quickCheck[0];
+                
+                // Check if sold
+                if (square.sold) {
+                    alert("This square has been sold!");
                     return;
                 }
-                // Reservation expired, remove it from pending
-                pendingSquares.delete(num);
+                
+                // Check if awaiting payment approval
+                if (square.payment_status === 'pending') {
+                    alert("This square is awaiting payment approval. Please choose another!");
+                    return;
+                }
+                
+                // Check if reserved by someone else (not expired)
+                if (square.reserved_until && square.reserved_by !== sessionId) {
+                    const reservedUntilDate = new Date(square.reserved_until);
+                    if (reservedUntilDate > new Date()) {
+                        alert("This square is currently reserved by someone else. Please choose another!");
+                        return;
+                    }
+                }
             }
             
             const sq = document.getElementById(`sq-${num}`);
@@ -1288,11 +1308,16 @@
                 // First check if square is available
                 const { data: checkData } = await supabaseClient
                     .from('squares')
-                    .select('sold, reserved_until, reserved_by')
+                    .select('sold, reserved_until, reserved_by, payment_status')
                     .eq('fundraiser_id', fundraiserId)
                     .eq('square_number', num);
                 
                 if (!checkData || checkData.length === 0 || checkData[0].sold) {
+                    return false;
+                }
+                
+                // Check if square is awaiting payment approval
+                if (checkData[0].payment_status === 'pending') {
                     return false;
                 }
                 
