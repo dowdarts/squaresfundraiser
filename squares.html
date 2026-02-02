@@ -968,6 +968,31 @@
         const CHECKOUT_LOCK_DURATION = 120; // 2 minutes in seconds for checkout (changed from 5)
         let PRICE_PER_SQUARE = 5.00; // Default, will be loaded from fundraiser
 
+        // Clean up expired reservations
+        async function cleanupExpiredReservations() {
+            try {
+                const now = new Date().toISOString();
+                
+                // Clear any reservations that have expired (reserved_until < now)
+                // But DON'T clear payment_status='pending' squares
+                const { error } = await supabaseClient
+                    .from('squares')
+                    .update({ 
+                        reserved_until: null,
+                        reserved_by: null
+                    })
+                    .eq('fundraiser_id', fundraiserId)
+                    .is('payment_status', null)  // Only clear if not awaiting payment
+                    .lt('reserved_until', now);  // Where reservation has expired
+                
+                if (error) {
+                    console.warn('Error cleaning up expired reservations:', error);
+                }
+            } catch (error) {
+                console.warn('Error in cleanup function:', error);
+            }
+        }
+
         // Load fundraiser details
         async function loadFundraiser() {
             if (!fundraiserId) {
@@ -1027,6 +1052,9 @@
                 if (promoBanner) {
                     promoBanner.textContent = `ENTRY: $${PRICE_PER_SQUARE.toFixed(2)} PER SQUARE`;
                 }
+
+                // Clean up expired reservations on page load
+                await cleanupExpiredReservations();
 
                 return true;
             } catch (error) {
