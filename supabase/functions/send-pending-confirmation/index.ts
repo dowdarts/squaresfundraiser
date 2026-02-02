@@ -187,6 +187,8 @@ serve(async (req) => {
       <td align="center">
         <div class="container">
           <div class="header">
+            <img src="https://i.postimg.cc/kVmmndJP/Untitled-2.png" alt="SquareFund" style="max-width: 180px; margin-bottom: 15px;">
+            <br>
             <span class="brand-text">SQUARE<span class="accent">FUND</span></span>
           </div>
           
