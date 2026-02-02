@@ -47,7 +47,7 @@ serve(async (req) => {
         'Authorization': `Bearer ${RESEND_API_KEY}`
       },
       body: JSON.stringify({
-        from: 'SquareFund <noreply@aadsdarts.com>',
+        from: 'SquareFund <onboarding@resend.dev>',
         to: [buyerEmail],
         subject: '✅ Payment Confirmed - Your Squares Are Locked In!',
         html: `
