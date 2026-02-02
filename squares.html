@@ -938,6 +938,7 @@
         
         // Fundraiser details (loaded dynamically)
         let fundraiserData = null;
+        let currentFundraiser = null;
 
         const grid = document.getElementById('dartGrid');
         const modal = document.getElementById('paymentModal');
@@ -1042,7 +1043,13 @@
             try {
                 const { data, error } = await supabaseClient
                     .from('fundraisers')
-                    .select('*')
+                    .select(`
+                        *,
+                        profiles:organizer_id (
+                            email,
+                            full_name
+                        )
+                    `)
                     .eq('id', fundraiserId)
                     .eq('is_active', true);
 
@@ -1055,6 +1062,7 @@
                 }
 
                 fundraiserData = data[0];
+                currentFundraiser = data[0]; // Store for later use
                 PRICE_PER_SQUARE = parseFloat(data[0].square_price);
 
                 // Update page title and header elements
@@ -1725,6 +1733,38 @@
                         console.error(`Error updating square ${num}:`, error);
                         continue;
                     }
+                }
+
+                // Send notification email to organizer
+                try {
+                    console.log('Sending organizer notification...');
+                    const organizerEmail = currentFundraiser.profiles?.email || currentFundraiser.payment_email;
+                    const organizerName = currentFundraiser.profiles?.full_name || 'Organizer';
+                    
+                    if (organizerEmail) {
+                        const { data: emailResult, error: emailError } = await supabaseClient.functions.invoke('notify-organizer', {
+                            body: {
+                                organizerEmail: organizerEmail,
+                                organizerName: organizerName,
+                                buyerName: buyerName,
+                                fundraiserName: currentFundraiser.title,
+                                squareNumbers: squaresList,
+                                squareCount: selectedSquares.size,
+                                totalAmount: totalAmount
+                            }
+                        });
+
+                        if (emailError) {
+                            console.error('❌ Failed to send organizer notification:', emailError);
+                        } else {
+                            console.log('✅ Organizer notification sent successfully!');
+                        }
+                    } else {
+                        console.warn('⚠️ No organizer email found, skipping notification');
+                    }
+                } catch (emailErr) {
+                    console.error('❌ Error sending organizer notification:', emailErr);
+                    // Continue even if email fails
                 }
 
                 // Show e-transfer information
