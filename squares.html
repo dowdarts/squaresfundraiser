@@ -1082,9 +1082,15 @@
             }
             
             // Check if reserved by someone else OR awaiting payment approval
+            // But also check if the reservation has expired
             if (pendingSquares.has(num) && !myReservedSquares.has(num)) {
-                alert("This square is currently reserved or awaiting payment approval. Please choose another!");
-                return;
+                const reservedUntil = pendingSquares.get(num);
+                if (reservedUntil && reservedUntil > new Date()) {
+                    alert("This square is currently reserved or awaiting payment approval. Please choose another!");
+                    return;
+                }
+                // Reservation expired, remove it from pending
+                pendingSquares.delete(num);
             }
             
             const sq = document.getElementById(`sq-${num}`);
@@ -1114,11 +1120,12 @@
         async function reserveSquare(num, duration) {
             try {
                 const reserveUntil = new Date(Date.now() + duration * 1000).toISOString();
+                const now = new Date().toISOString();
                 
                 // First check if square is available
                 const { data: checkData } = await supabaseClient
                     .from('squares')
-                    .select('sold, reserved_until')
+                    .select('sold, reserved_until, reserved_by')
                     .eq('fundraiser_id', fundraiserId)
                     .eq('square_number', num)
                     .single();
@@ -1127,7 +1134,16 @@
                     return false;
                 }
                 
-                // Now try to reserve it
+                // Check if square is currently reserved by someone else and reservation hasn't expired
+                if (checkData.reserved_until && checkData.reserved_by !== sessionId) {
+                    const reservedUntilDate = new Date(checkData.reserved_until);
+                    if (reservedUntilDate > new Date()) {
+                        // Still reserved by someone else
+                        return false;
+                    }
+                }
+                
+                // Now try to reserve it - only if not sold AND (not reserved OR reservation expired OR it's our own reservation)
                 const { error } = await supabaseClient
                     .from('squares')
                     .update({ 
@@ -1135,7 +1151,8 @@
                         reserved_by: sessionId
                     })
                     .eq('fundraiser_id', fundraiserId)
-                    .eq('square_number', num);
+                    .eq('square_number', num)
+                    .eq('sold', false);
                 
                 if (error) {
                     console.error('Error reserving square:', error);
