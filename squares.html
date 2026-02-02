@@ -996,6 +996,19 @@
         // Initialize a single square if it doesn't exist
         async function initializeSquare(squareNum) {
             try {
+                // First check if it already exists to avoid duplicate errors
+                const { data: existing } = await supabaseClient
+                    .from('squares')
+                    .select('square_number')
+                    .eq('fundraiser_id', fundraiserId)
+                    .eq('square_number', squareNum);
+                
+                if (existing && existing.length > 0) {
+                    console.log('Square already exists:', squareNum);
+                    return true;
+                }
+                
+                // Insert the new square
                 const { data, error } = await supabaseClient
                     .from('squares')
                     .insert({
@@ -1006,9 +1019,7 @@
                     .select();
                 
                 if (error) {
-                    if (!error.message?.includes('duplicate')) {
-                        console.error('Error initializing square:', error);
-                    }
+                    console.error('Error initializing square:', error);
                     return false;
                 }
                 
