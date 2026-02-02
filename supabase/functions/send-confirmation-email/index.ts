@@ -19,12 +19,25 @@ serve(async (req) => {
   try {
     const { buyerEmail, buyerName, squares, eventName } = await req.json()
 
+    console.log('Received email request:', { buyerEmail, buyerName, squares, eventName })
+
     if (!buyerEmail || !buyerName || !squares) {
+      console.error('Missing required fields:', { buyerEmail, buyerName, squares })
       return new Response(
         JSON.stringify({ error: 'Missing required fields' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
+
+    if (!RESEND_API_KEY) {
+      console.error('RESEND_API_KEY is not set!')
+      return new Response(
+        JSON.stringify({ error: 'RESEND_API_KEY not configured' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    console.log('Sending email via Resend API...')
 
     // Send email using Resend API
     const res = await fetch('https://api.resend.com/emails', {
@@ -86,12 +99,17 @@ serve(async (req) => {
 
     const data = await res.json()
 
+    console.log('Resend API response status:', res.status)
+    console.log('Resend API response:', data)
+
     if (res.ok) {
+      console.log('✅ Email sent successfully!')
       return new Response(
         JSON.stringify({ success: true, data }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     } else {
+      console.error('❌ Resend API error:', data)
       return new Response(
         JSON.stringify({ error: 'Failed to send email', details: data }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -99,6 +117,7 @@ serve(async (req) => {
     }
 
   } catch (error) {
+    console.error('❌ Exception in email function:', error)
     return new Response(
       JSON.stringify({ error: String(error) }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
