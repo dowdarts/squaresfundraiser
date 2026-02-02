@@ -1359,7 +1359,7 @@
                 }
                 
                 // Now try to reserve it - only if not sold AND (not reserved OR reservation expired OR it's our own reservation)
-                const { error } = await supabaseClient
+                const { data: updateResult, error } = await supabaseClient
                     .from('squares')
                     .update({ 
                         reserved_until: reserveUntil,
@@ -1367,15 +1367,23 @@
                     })
                     .eq('fundraiser_id', fundraiserId)
                     .eq('square_number', num)
-                    .eq('sold', false);
+                    .eq('sold', false)
+                    .is('payment_status', null)  // Not awaiting payment
+                    .or(`reserved_until.is.null,reserved_until.lt.${now},reserved_by.eq.${sessionId}`)  // Not reserved, expired, or ours
+                    .select();
                 
                 if (error) {
                     console.error('Error reserving square:', error);
-                    alert('Failed to reserve square: ' + (error.message || 'Unknown error'));
                     return false;
                 }
                 
-                // If no error, the reservation succeeded
+                // Check if update was successful (row was actually updated)
+                if (!updateResult || updateResult.length === 0) {
+                    console.log('Failed to reserve - square may be taken by someone else');
+                    return false;
+                }
+                
+                // If we got here, the reservation succeeded
                 pendingSquares.set(num, new Date(reserveUntil));
                 myReservedSquares.add(num);
                 return true;
