@@ -817,19 +817,18 @@
                     .from('fundraisers')
                     .select('*')
                     .eq('id', fundraiserId)
-                    .eq('is_active', true)
-                    .single();
+                    .eq('is_active', true);
 
                 if (error) throw error;
 
-                if (!data) {
+                if (!data || data.length === 0) {
                     alert('Fundraiser not found or is no longer active.');
                     window.location.href = 'index.html';
                     return false;
                 }
 
-                fundraiserData = data;
-                PRICE_PER_SQUARE = parseFloat(data.square_price);
+                fundraiserData = data[0];
+                PRICE_PER_SQUARE = parseFloat(data[0].square_price);
 
                 // Update page title and header elements
                 document.title = data.title || 'Square Fundraiser';
@@ -1127,16 +1126,15 @@
                     .from('squares')
                     .select('sold, reserved_until, reserved_by')
                     .eq('fundraiser_id', fundraiserId)
-                    .eq('square_number', num)
-                    .single();
+                    .eq('square_number', num);
                 
-                if (!checkData || checkData.sold) {
+                if (!checkData || checkData.length === 0 || checkData[0].sold) {
                     return false;
                 }
                 
                 // Check if square is currently reserved by someone else and reservation hasn't expired
-                if (checkData.reserved_until && checkData.reserved_by !== sessionId) {
-                    const reservedUntilDate = new Date(checkData.reserved_until);
+                if (checkData[0].reserved_until && checkData[0].reserved_by !== sessionId) {
+                    const reservedUntilDate = new Date(checkData[0].reserved_until);
                     if (reservedUntilDate > new Date()) {
                         // Still reserved by someone else
                         return false;
@@ -1437,11 +1435,10 @@
                 const { data, error } = await supabaseClient
                     .from('settings')
                     .select('etransfer_email')
-                    .eq('id', 1)
-                    .single();
+                    .eq('id', 1);
 
-                if (data && data.etransfer_email) {
-                    etransferEmail = data.etransfer_email;
+                if (data && data.length > 0 && data[0].etransfer_email) {
+                    etransferEmail = data[0].etransfer_email;
                 }
             } catch (error) {
                 console.error('Error loading eTransfer email:', error);
@@ -1577,10 +1574,9 @@
                         .from('squares')
                         .select('buyer_name')
                         .eq('fundraiser_id', fundraiserId)
-                        .eq('square_number', winnerNumber)
-                        .single();
+                        .eq('square_number', winnerNumber);
                     
-                    const winnerName = winnerData?.buyer_name || 'Unknown';
+                    const winnerName = (winnerData && winnerData.length > 0) ? winnerData[0].buyer_name : 'Unknown';
                     
                     // Show winner announcement for 3 seconds
                     setTimeout(() => {
