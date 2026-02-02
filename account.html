@@ -297,6 +297,7 @@
             <div id="passwordMessage" class="message"></div>
 
             <form id="passwordForm" onsubmit="updatePassword(event)">
+                <input type="email" id="passwordEmail" autocomplete="username" style="display: none;">
                 <div class="form-group">
                     <label>New Password</label>
                     <input type="password" id="newPassword" autocomplete="new-password" required minlength="6" placeholder="Enter new password">
@@ -338,6 +339,7 @@
 
             currentUser = user;
             document.getElementById('currentEmail').textContent = user.email;
+            document.getElementById('passwordEmail').value = user.email;
         }
 
         // Load user profile
@@ -346,15 +348,14 @@
                 const { data, error } = await supabaseClient
                     .from('profiles')
                     .select('*')
-                    .eq('id', currentUser.id)
-                    .single();
+                    .eq('id', currentUser.id);
 
                 if (error && error.code !== 'PGRST116') throw error;
 
-                if (data) {
-                    document.getElementById('firstName').value = data.first_name || '';
-                    document.getElementById('lastName').value = data.last_name || '';
-                    document.getElementById('organizationName').value = data.organization_name || '';
+                if (data && data.length > 0) {
+                    document.getElementById('firstName').value = data[0].first_name || '';
+                    document.getElementById('lastName').value = data[0].last_name || '';
+                    document.getElementById('organizationName').value = data[0].organization_name || '';
                 }
             } catch (error) {
                 console.error('Error loading profile:', error);
