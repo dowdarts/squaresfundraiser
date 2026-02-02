@@ -1529,7 +1529,10 @@
                             buyerEmail: buyerEmail,
                             buyerName: buyerName,
                             squares: squaresList,
-                            eventName: fundraiser.title
+                            squareCount: squares.length,
+                            eventName: fundraiser.title,
+                            organizerName: fundraiser.organizer_name || 'the organizer',
+                            boardId: currentFundraiserId
                         }
                     });
 
