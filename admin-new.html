@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - SquareFund</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary-orange: #f97316;
+            --background-dark: #121212;
+            --card-bg: #1a1a1a;
+            --border-color: rgba(255, 255, 255, 0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+            background-color: var(--background-dark);
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        ::selection {
+            background-color: var(--primary-orange);
+            color: white;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            background-color: rgba(26, 26, 26, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.75rem 0;
+        }
+
+        .nav-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+        }
+
+        .nav-logo-img {
+            background: white;
+            padding: 0.25rem;
+            border-radius: 0.375rem;
+            height: 32px;
+        }
+
+        .nav-logo-text {
+            font-size: 1.25rem;
+            font-weight: 900;
+            letter-spacing: -0.05em;
+            color: white;
+            text-transform: uppercase;
+            font-style: italic;
+        }
+
+        .nav-logo-text span {
+            color: var(--primary-orange);
+        }
+
+        .nav-buttons {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .user-email {
+            color: var(--primary-orange);
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        .nav-btn {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-size: 0.625rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-btn-signout {
+            background: none;
+            border: none;
+            color: white;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-size: 0.625rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: color 0.2s;
+        }
+
+        .nav-btn-signout:hover {
+            color: var(--primary-orange);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding-top: 8rem;
+            padding-bottom: 5rem;
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+            min-height: 100vh;
+        }
+
+        .dashboard-container {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        .dashboard-header {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        @media (min-width: 768px) {
+            .dashboard-header {
+                flex-direction: row;
+                align-items: flex-end;
+                justify-content: space-between;
+            }
+        }
+
+        .dashboard-title {
+            font-size: 2.5rem;
+            font-weight: 900;
+            font-style: italic;
+            text-transform: uppercase;
+            color: white;
+            letter-spacing: -0.05em;
+        }
+
+        @media (min-width: 768px) {
+            .dashboard-title {
+                font-size: 3rem;
+            }
+        }
+
+        .dashboard-title span {
+            color: var(--primary-orange);
+        }
+
+        .dashboard-subtitle {
+            color: #64748b;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-size: 0.75rem;
+            margin-top: 0.75rem;
+        }
+
+        .create-btn {
+            background-color: var(--primary-orange);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-size: 0.75rem;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            box-shadow: 0 25px 50px -12px rgba(249, 115, 22, 0.1);
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        @media (min-width: 768px) {
+            .create-btn {
+                width: auto;
+            }
+        }
+
+        .create-btn:hover {
+            background-color: #ea580c;
+        }
+
+        .create-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Board Grid */
+        .board-grid {
+            display: grid;
+            gap: 1.5rem;
+            grid-template-columns: 1fr;
+        }
+
+        @media (min-width: 768px) {
+            .board-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .board-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .board-card {
+            background-color: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 320px;
+        }
+
+        .board-card:hover {
+            border-color: rgba(249, 115, 22, 0.4);
+        }
+
+        .board-status {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            font-size: 0.5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            border: 1px solid;
+        }
+
+        .board-status.active {
+            background-color: rgba(249, 115, 22, 0.1);
+            color: var(--primary-orange);
+            border-color: rgba(249, 115, 22, 0.2);
+        }
+
+        .board-status.completed {
+            background-color: rgba(34, 197, 94, 0.1);
+            color: #22c55e;
+            border-color: rgba(34, 197, 94, 0.2);
+        }
+
+        .board-card-title {
+            font-size: 1.25rem;
+            font-weight: 900;
+            font-style: italic;
+            text-transform: uppercase;
+            color: white;
+            margin-bottom: 1rem;
+            padding-right: 3rem;
+            line-height: 1.2;
+            transition: color 0.3s;
+        }
+
+        .board-card:hover .board-card-title {
+            color: var(--primary-orange);
+        }
+
+        .board-time {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #64748b;
+            font-size: 0.625rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 2rem;
+        }
+
+        .board-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            border-top: 1px solid var(--border-color);
+            padding-top: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat:nth-child(2) {
+            border-left: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: white;
+        }
+
+        .stat-value.highlight {
+            color: var(--primary-orange);
+        }
+
+        .stat-label {
+            font-size: 0.5625rem;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-top: 0.25rem;
+        }
+
+        .board-action {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-orange);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-size: 0.5625rem;
+        }
+
+        .add-board-card {
+            border: 2px dashed rgba(255, 255, 255, 0.05);
+            border-radius: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-height: 320px;
+        }
+
+        .add-board-card:hover {
+            border-color: rgba(249, 115, 22, 0.3);
+        }
+
+        .add-board-icon {
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 50%;
+            margin-bottom: 1rem;
+            transition: all 0.3s;
+        }
+
+        .add-board-card:hover .add-board-icon {
+            background-color: rgba(249, 115, 22, 0.1);
+        }
+
+        .add-board-text {
+            color: #475569;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-size: 0.625rem;
+        }
+
+        .add-board-card:hover .add-board-text {
+            color: #64748b;
+        }
+
+        /* Icons (SVG inline) */
+        .icon {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+        }
+
+        .icon-sm {
+            width: 14px;
+            height: 14px;
+        }
+
+        .icon-lg {
+            width: 32px;
+            height: 32px;
+        }
+
+        /* Loading State */
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            gap: 1rem;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: var(--primary-orange);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="nav-logo" onclick="window.location.href='index.html'">
+                <img src="imgaeonlylogo.png" alt="SquareFund" class="nav-logo-img">
+                <span class="nav-logo-text">SQUARE<span>FUND</span></span>
+            </div>
+
+            <div class="nav-buttons">
+                <span class="user-email" id="userEmail">Loading...</span>
+                <button class="nav-btn" onclick="window.location.href='account.html'">My Account</button>
+                <button class="nav-btn-signout" onclick="signOut()">
+                    <svg class="icon-sm" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    Sign Out
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Dashboard -->
+    <main class="main-content">
+        <div class="dashboard-container">
+            <!-- Loading State -->
+            <div id="loadingState" class="loading">
+                <div class="spinner"></div>
+                <p style="color: #64748b; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em;">Loading your boards...</p>
+            </div>
+
+            <!-- Dashboard Content -->
+            <div id="dashboardContent" class="hidden">
+                <div class="dashboard-header">
+                    <div>
+                        <h1 class="dashboard-title">SQUARE FUND <span>DASHBOARD</span></h1>
+                        <p class="dashboard-subtitle">Manage your fundraisers and track performance</p>
+                    </div>
+                    <button class="create-btn" onclick="createNewFundraiser()">
+                        <svg class="icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        Create New Fundraiser
+                    </button>
+                </div>
+
+                <div class="board-grid" id="boardGrid">
+                    <!-- Board cards will be inserted here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://xsmrquoivqrxalxjqxdw.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzbXJxdW9pdnFyeGFseGpxeGR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2NTkxNzUsImV4cCI6MjA4NTIzNTE3NX0.uJAVb4k61Oxja15NUuiC8_TtxhzWtAC-dlh-nepTKdU';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let currentUser = null;
+        let userFundraisers = [];
+
+        // Initialize
+        async function init() {
+            await checkAuth();
+            await loadFundraisers();
+        }
+
+        // Check authentication
+        async function checkAuth() {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            
+            if (!user) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            currentUser = user;
+            document.getElementById('userEmail').textContent = user.email;
+        }
+
+        // Load fundraisers
+        async function loadFundraisers() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('fundraisers')
+                    .select('*')
+                    .eq('organizer_id', currentUser.id)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                userFundraisers = data || [];
+                renderFundraisers();
+                
+                // Hide loading, show content
+                document.getElementById('loadingState').classList.add('hidden');
+                document.getElementById('dashboardContent').classList.remove('hidden');
+            } catch (error) {
+                console.error('Error loading fundraisers:', error);
+                alert('Error loading fundraisers: ' + error.message);
+            }
+        }
+
+        // Render fundraisers
+        function renderFundraisers() {
+            const grid = document.getElementById('boardGrid');
+            grid.innerHTML = '';
+
+            // Add existing fundraisers
+            userFundraisers.forEach(fundraiser => {
+                grid.appendChild(createBoardCard(fundraiser));
+            });
+
+            // Add "Add New Board" card
+            grid.appendChild(createAddBoardCard());
+        }
+
+        // Create board card
+        function createBoardCard(fundraiser) {
+            const card = document.createElement('div');
+            card.className = 'board-card';
+            card.onclick = () => openBoardEditor(fundraiser.id);
+
+            const status = fundraiser.is_active ? 'active' : 'completed';
+            const statusClass = fundraiser.is_active ? 'active' : 'completed';
+            const statusText = fundraiser.is_active ? 'Active' : 'Completed';
+
+            // Calculate stats
+            const soldCount = fundraiser.sold_count || 0;
+            const totalSquares = 50;
+            const available = totalSquares - soldCount;
+            const raised = (soldCount * parseFloat(fundraiser.square_price || 0)).toFixed(0);
+
+            card.innerHTML = `
+                <div class="board-status ${statusClass}">${statusText}</div>
+                
+                <div>
+                    <h3 class="board-card-title">${fundraiser.title}</h3>
+                    <div class="board-time">
+                        <svg class="icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        Last updated: ${getTimeAgo(fundraiser.updated_at)}
+                    </div>
+                </div>
+
+                <div class="board-stats">
+                    <div class="stat">
+                        <div class="stat-value">${soldCount}</div>
+                        <div class="stat-label">Sold</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">${available}</div>
+                        <div class="stat-label">Avail.</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value highlight">$${raised}</div>
+                        <div class="stat-label">Raised</div>
+                    </div>
+                </div>
+
+                <div class="board-action">
+                    Manage Settings
+                    <svg class="icon-sm" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // Create "Add New Board" card
+        function createAddBoardCard() {
+            const card = document.createElement('div');
+            card.className = 'add-board-card';
+            card.onclick = createNewFundraiser;
+
+            card.innerHTML = `
+                <div class="add-board-icon">
+                    <svg class="icon-lg" style="color: #475569;" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </div>
+                <span class="add-board-text">Add New Board</span>
+            `;
+
+            return card;
+        }
+
+        // Get time ago
+        function getTimeAgo(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            return `${diffDays}d ago`;
+        }
+
+        // Open board editor
+        function openBoardEditor(fundraiserId) {
+            window.location.href = `admin-old.html?id=${fundraiserId}`;
+        }
+
+        // Create new fundraiser
+        function createNewFundraiser() {
+            window.location.href = 'admin-old.html';
+        }
+
+        // Sign out
+        async function signOut() {
+            try {
+                const { error } = await supabaseClient.auth.signOut();
+                if (error) throw error;
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Error signing out:', error);
+                alert('Error signing out: ' + error.message);
+            }
+        }
+
+        // Initialize on page load
+        init();
+    </script>
+</body>
+</html>
