@@ -10,12 +10,17 @@ WHERE s.num NOT IN (
     WHERE fundraiser_id = '62f3781c-f01e-4e72-a60b-ad69873287cd'
 );
 
--- Option 1: Add unique constraint first (recommended for future use)
+-- Option 1: Fix the unique constraint (recommended - do this first)
+-- Drop the incorrect constraint that only checks square_number
+ALTER TABLE squares 
+DROP CONSTRAINT IF EXISTS squares_square_number_key;
+
+-- Add the correct constraint that checks both fundraiser_id and square_number together
 ALTER TABLE squares 
 ADD CONSTRAINT squares_fundraiser_square_unique 
 UNIQUE (fundraiser_id, square_number);
 
--- Option 2: Insert only missing squares (use this if constraint already exists or after adding it)
+-- Option 2: Insert only missing squares (run this after fixing the constraint)
 INSERT INTO squares (fundraiser_id, square_number, sold)
 SELECT 
     '62f3781c-f01e-4e72-a60b-ad69873287cd', 
