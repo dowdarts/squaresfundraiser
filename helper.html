@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SquareFund | AI Help Agent</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-orange: #f97316;
+            --secondary-orange: #f39200;
+            --background-dark: #121212;
+            --card-bg: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --border-color: rgba(255, 255, 255, 0.05);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: var(--background-dark);
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+        }
+        
+        ::selection {
+            background-color: var(--primary-orange);
+            color: white;
+        }
+        
+        .gold-gradient {
+            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--secondary-orange) 100%);
+        }
+        .chat-container {
+            height: calc(100vh - 250px);
+            min-height: 450px;
+        }
+        .message-bubble {
+            max-width: 85%;
+            border-radius: 18px;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .user-message {
+            background-color: #333;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+        .agent-message {
+            background-color: #262626;
+            border: 1px solid #444;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        .typing-dot {
+            height: 8px;
+            width: 8px;
+            background: var(--primary-orange);
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 2px;
+            animation: wave 1.3s linear infinite;
+        }
+        @keyframes wave {
+            0%, 60%, 100% { transform: initial; }
+            30% { transform: translateY(-5px); }
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #121212; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        
+        .magic-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #ccc;
+            transition: all 0.2s ease;
+        }
+        .magic-btn:hover {
+            background: rgba(249, 115, 22, 0.1);
+            border-color: var(--primary-orange);
+            color: var(--primary-orange);
+            transform: translateX(4px);
+        }
+        .ai-btn {
+            background: rgba(168, 85, 247, 0.05);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            color: #d8b4fe;
+        }
+        .ai-btn:hover {
+            background: rgba(168, 85, 247, 0.15);
+            border-color: #a855f7;
+            color: white;
+            transform: translateX(4px);
+        }
+        .category-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #666;
+            margin-top: 1.25rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+        .suggested-pill {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-block;
+            margin-right: 6px;
+            margin-bottom: 6px;
+        }
+        .suggested-pill:hover {
+            border-color: var(--primary-orange);
+            color: var(--primary-orange);
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Header -->
+    <header class="p-6 border-b border-gray-800 flex justify-between items-center bg-[#0a0a0a]">
+        <div class="flex items-center gap-3">
+            <img src="http://squarefund.aadsdarts.com/imgaeonlylogo.png" alt="SquareFund Logo" class="h-10 w-auto bg-white p-1 rounded-md">
+            <div>
+                <h1 class="text-xl font-bold tracking-tight text-white" style="letter-spacing: -0.05em; text-transform: uppercase; font-style: italic;">SquareFund <span style="color: #f97316;">AI Help Agent</span></h1>
+                <p class="text-xs text-gray-400 uppercase tracking-widest">Official Multi-Sport Concierge</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <span class="hidden md:flex items-center gap-2 text-xs text-green-500 font-bold bg-green-500/10 px-3 py-1 rounded-full border border-green-500/20">
+                <span class="flex h-2 w-2 rounded-full bg-green-500 animate-pulse"></span> SYSTEM ACTIVE
+            </span>
+            <a href="http://squarefund.aadsdarts.com/" class="text-sm font-medium transition-colors" style="color: #94a3b8;" onmouseover="this.style.color='#f97316'" onmouseout="this.style.color='#94a3b8'">Go to Board</a>
+        </div>
+    </header>
+
+    <main class="flex-grow flex flex-col md:flex-row max-w-7xl mx-auto w-full p-4 gap-6">
+        
+        <!-- Sidebar: Structured Categories -->
+        <aside class="w-full md:w-80 flex flex-col gap-4 overflow-y-auto max-h-[85vh] pb-10 pr-2">
+            <div class="bg-[#1e1e1e] p-5 rounded-2xl border border-gray-800 shadow-xl">
+                
+                <!-- Category 1: About SquareFund -->
+                <p class="category-label flex items-center gap-2 mt-0"><i class="fa-solid fa-circle-info text-yellow-400"></i> About SquareFund</p>
+                <div class="flex flex-col gap-1">
+                    <button onclick="handleQuickAction('Tell me about SquareFund—is it really free?')" class="magic-btn text-left p-2 rounded-lg text-xs font-medium">❓ What is SquareFund?</button>
+                    <button onclick="handleQuickAction('Which sports and organizations can use this?')" class="magic-btn text-left p-2 rounded-lg text-xs font-medium">⚽ Supported Sports</button>
+                    <button onclick="handleQuickAction('How is it better than a paper board or Facebook comments?')" class="magic-btn text-left p-2 rounded-lg text-xs font-medium">📄 vs Old Methods</button>
+                </div>
+
+                <!-- Category 2: User Manual -->
+                <p class="category-label flex items-center gap-2"><i class="fa-solid fa-book-open text-green-400"></i> User Manual</p>
+                <div class="flex flex-col gap-1">
+                    <button onclick="handleQuickAction('Step-by-step: How to approve a payment.')" class="magic-btn text-left p-2 rounded-lg text-xs font-medium">✅ Payment Approval</button>
+                    <button onclick="handleQuickAction('How do I run the 20-spin lottery draw?')" class="magic-btn text-left p-2 rounded-lg text-xs font-medium">🎲 Running the Draw</button>
+                    <button onclick="handleQuickAction('How do I change my board banner?')" class="magic-btn text-left p-2 rounded-lg text-xs font-medium">🖼️ Branding Settings</button>
+                </div>
+
+                <!-- Category 3: Admin Toolkit -->
+                <p class="category-label flex items-center gap-2"><i class="fa-solid fa-toolbox text-orange-400"></i> Admin Toolkit</p>
+                <div class="flex flex-col gap-1">
+                    <button onclick="handleQuickAction('How do I see who has claimed squares but not paid?')" class="magic-btn text-left p-2 rounded-lg text-xs font-medium">🔍 Tracking Claims</button>
+                    <button onclick="handleQuickAction('How do I edit user names on the board?')" class="magic-btn text-left p-2 rounded-lg text-xs font-medium">✏️ Edit Board Data</button>
+                    <button onclick="handleQuickAction('How to close a board once it is full.')" class="magic-btn text-left p-2 rounded-lg text-xs font-medium">🔒 Closing the Board</button>
+                </div>
+
+                <!-- Category 4: Mobile Management -->
+                <p class="category-label flex items-center gap-2"><i class="fa-solid fa-mobile-screen-button text-blue-400"></i> Mobile Management</p>
+                <div class="flex flex-col gap-1">
+                    <button onclick="handleQuickAction('How do I manage my board while I am out shopping?')" class="magic-btn text-left p-2 rounded-lg text-xs font-medium">📱 Shopping & Admin</button>
+                    <button onclick="handleQuickAction('Can I confirm e-transfers from my phone anywhere?')" class="magic-btn text-left p-2 rounded-lg text-xs font-medium">🛰️ Anywhere Access</button>
+                </div>
+
+                <!-- Category 5: AI Features (Highlighted) -->
+                <p class="category-label flex items-center gap-2"><i class="fa-solid fa-wand-magic-sparkles text-purple-400"></i> AI Magic Features</p>
+                <div class="flex flex-col gap-1">
+                    <button onclick="handleQuickAction('✨ Write a post explaining why this is better than Facebook.')" class="ai-btn text-left p-2 rounded-lg text-xs font-medium">✨ FB vs SquareFund Post</button>
+                    <button onclick="handleQuickAction('✨ I need to raise $1000 for my sports team. How do I price it?')" class="ai-btn text-left p-2 rounded-lg text-xs font-medium">✨ AI Goal Planner</button>
+                    <button onclick="handleQuickAction('✨ Write a funny winner announcement for my league.')" class="ai-btn text-left p-2 rounded-lg text-xs font-medium">✨ Winner Announcer</button>
+                </div>
+            </div>
+
+            <div class="bg-yellow-500/5 p-4 rounded-xl border border-yellow-500/20">
+                <p class="text-[10px] text-yellow-500 font-bold uppercase mb-1">Organizer Tip</p>
+                <p class="text-xs text-gray-400 leading-relaxed">No more Facebook chaos. Approve a square while you're grabbing coffee.</p>
+            </div>
+        </aside>
+
+        <!-- Chat Area -->
+        <section class="flex-grow flex flex-col bg-[#1e1e1e] rounded-3xl border border-gray-800 overflow-hidden shadow-2xl">
+            <!-- Messages Area -->
+            <div id="chat-window" class="chat-container overflow-y-auto p-6 flex flex-col gap-4">
+                <div class="agent-message message-bubble">
+                    <p class="mb-2">👋 <strong>Hello! I'm the SquareFund AI Help Agent.</strong></p>
+                    <p class="text-lg font-medium text-white mb-3">How can I help you elevate your fundraiser today?</p>
+                    
+                    <div class="mt-4">
+                        <p class="text-[10px] uppercase font-bold text-gray-500 mb-2">I can help with things like:</p>
+                        <div class="flex flex-wrap">
+                            <span onclick="handleQuickAction('How do I get started with a new board?')" class="suggested-pill">🏁 Getting Started</span>
+                            <span onclick="handleQuickAction('How do I verify e-transfers?')" class="suggested-pill">💳 Payment Help</span>
+                            <span onclick="handleQuickAction('Help me plan my $ fundraising goal.')" class="suggested-pill">💰 Goal Planning</span>
+                            <span onclick="handleQuickAction('Tell me about the 20-spin lottery draw.')" class="suggested-pill">🎲 Draw Rules</span>
+                            <span onclick="handleQuickAction('Can I really manage this from my phone while out?')" class="suggested-pill">📱 Mobile Admin</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Typing Indicator -->
+            <div id="typing-indicator" class="px-6 py-2 hidden">
+                <div class="agent-message message-bubble py-2 px-4 italic text-sm text-gray-400">
+                    AI Agent is typing <span class="typing-dot"></span><span class="typing-dot" style="animation-delay: 0.2s"></span><span class="typing-dot" style="animation-delay: 0.4s"></span>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="p-4 bg-[#161616] border-t border-gray-800">
+                <form id="chat-form" class="flex gap-2">
+                    <input type="text" id="user-input" placeholder="Type your question or choose a category..." 
+                        class="flex-grow bg-[#262626] border border-gray-700 rounded-full px-6 py-3 focus:outline-none text-white" style="transition: border-color 0.2s;" onfocus="this.style.borderColor='#f97316'" onblur="this.style.borderColor='#374151'">
+                    <button type="submit" class="gold-gradient text-black h-12 w-12 rounded-full flex items-center justify-center hover:scale-105 transition-transform">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <footer class="p-4 text-center text-gray-500 text-xs">
+        &copy; 2026 SquareFund | AI Help Agent Concierge
+    </footer>
+
+    <script>
+        const apiKey = ""; 
+        const chatWindow = document.getElementById('chat-window');
+        const chatForm = document.getElementById('chat-form');
+        const userInput = document.getElementById('user-input');
+        const typingIndicator = document.getElementById('typing-indicator');
+
+        const SYSTEM_PROMPT = `
+        You are the SquareFund AI Help Agent, the official Concierge for squarefund.aadsdarts.com.
+        
+        KNOWLEDGE CATEGORIES:
+        1. ABOUT SQUAREFUND: It is 100% free, multi-sport (Soccer, Hockey, Darts, etc.), and replaces messy Facebook tracking.
+        2. USER MANUAL: Instructions for approving payments, running the 20-spin lottery, and customizing boards.
+        3. ADMIN TOOLKIT: Tracking who hasn't paid and managing board entries.
+        4. MOBILE MANAGEMENT: Emphasize that organizers can approve squares on their phone while shopping or at work. They just need to check their bank app then click "Approve" in the SquareFund admin.
+        5. AI FEATURES: You can write social media posts, plan fundraising goals, and announce winners.
+
+        TONE: 
+        Efficient, high-energy, and proactive. Always end responses by asking if there's anything else you can help with (e.g., "Can I help you with anything else regarding your mobile admin?"). 
+        Focus on how much easier life is when you move away from Facebook comments to an automated board.
+        `;
+
+        async function callGemini(message) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{ parts: [{ text: message }] }],
+                systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] }
+            };
+
+            let delay = 1000;
+            for (let i = 0; i < 5; i++) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await response.json();
+                    return data.candidates?.[0]?.content?.parts?.[0]?.text || "Connection issue. Please try again.";
+                } catch (error) {
+                    if (i === 4) throw error;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    delay *= 2;
+                }
+            }
+        }
+
+        function addMessage(text, role) {
+            const div = document.createElement('div');
+            div.className = `${role}-message message-bubble`;
+            const formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+            div.innerHTML = formattedText;
+            chatWindow.appendChild(div);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        async function handleSubmission(e) {
+            if(e) e.preventDefault();
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            addMessage(message, 'user');
+            userInput.value = '';
+            typingIndicator.classList.remove('hidden');
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+
+            try {
+                const response = await callGemini(message);
+                typingIndicator.classList.add('hidden');
+                addMessage(response, 'agent');
+            } catch (error) {
+                typingIndicator.classList.add('hidden');
+                addMessage("I ran into an issue. Please try again.", 'agent');
+            }
+        }
+
+        function handleQuickAction(text) {
+            userInput.value = text;
+            handleSubmission();
+        }
+
+        chatForm.addEventListener('submit', handleSubmission);
+    </script>
+</body>
+</html>

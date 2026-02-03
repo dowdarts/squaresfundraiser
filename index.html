@@ -32,6 +32,99 @@
             color: white;
         }
 
+        /* Floating Help Button */
+        .floating-help-btn {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #f97316 0%, #f39200 100%);
+            border-radius: 50%;
+            border: none;
+            box-shadow: 0 8px 24px rgba(249, 115, 22, 0.4);
+            cursor: pointer;
+            z-index: 9998;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            animation: pulse-help 2s infinite;
+        }
+
+        .floating-help-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 32px rgba(249, 115, 22, 0.6);
+        }
+
+        .floating-help-btn svg {
+            width: 28px;
+            height: 28px;
+            color: white;
+        }
+
+        @keyframes pulse-help {
+            0%, 100% { box-shadow: 0 8px 24px rgba(249, 115, 22, 0.4); }
+            50% { box-shadow: 0 8px 32px rgba(249, 115, 22, 0.7); }
+        }
+
+        /* Helper Modal */
+        .helper-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 9999;
+            backdrop-filter: blur(4px);
+        }
+
+        .helper-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .helper-modal iframe {
+            width: 95%;
+            height: 95%;
+            max-width: 1400px;
+            max-height: 900px;
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .helper-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .helper-close:hover {
+            background: rgba(249, 115, 22, 0.9);
+            transform: rotate(90deg);
+        }
+
+        .helper-close svg {
+            width: 20px;
+            height: 20px;
+            color: white;
+        }
+
         /* Navigation */
         nav {
             position: fixed;
@@ -2077,6 +2170,53 @@
                 grid.innerHTML = '<div class="fundraisers-loading"><p style="color: #ff4d4d;">Error loading fundraisers. Please try again.</p></div>';
             }
         }
+    </script>
+
+    <!-- Floating AI Help Button -->
+    <button class="floating-help-btn" onclick="openHelper()" title="AI Help Agent">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+    </button>
+
+    <!-- Helper Modal -->
+    <div class="helper-modal" id="helperModal" onclick="closeHelperIfOutside(event)">
+        <button class="helper-close" onclick="closeHelper()">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+        <iframe id="helperFrame" src=""></iframe>
+    </div>
+
+    <script>
+        function openHelper() {
+            const modal = document.getElementById('helperModal');
+            const iframe = document.getElementById('helperFrame');
+            iframe.src = 'helper.html';
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeHelper() {
+            const modal = document.getElementById('helperModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+            setTimeout(() => {
+                document.getElementById('helperFrame').src = '';
+            }, 300);
+        }
+
+        function closeHelperIfOutside(event) {
+            if (event.target.id === 'helperModal') {
+                closeHelper();
+            }
+        }
+
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeHelper();
+        });
     </script>
 </body>
 </html>
