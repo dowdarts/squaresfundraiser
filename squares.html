@@ -798,6 +798,391 @@
             border: 1px solid var(--border-color);
         }
 
+        /* ============================================ */
+        /* MOBILE-FIRST RESPONSIVE OPTIMIZATIONS */
+        /* ============================================ */
+
+        /* Mobile Base - applies to screens below 768px */
+        @media (max-width: 767px) {
+            body {
+                padding: 12px;
+            }
+
+            /* Header - Mobile */
+            header {
+                margin-bottom: 24px;
+            }
+
+            .header-logo {
+                max-width: 120px;
+                margin-bottom: 20px;
+                padding: 8px;
+                border-radius: 12px;
+            }
+
+            .fundraiser-title {
+                font-size: 1.75rem;
+                margin-bottom: 12px;
+                letter-spacing: -0.025em;
+            }
+
+            .logo {
+                max-width: 150px;
+                margin-bottom: 8px;
+            }
+
+            .promo-banner {
+                padding: 12px 20px;
+                border-radius: 8px;
+                font-size: 0.625rem;
+                letter-spacing: 0.1em;
+                margin-bottom: 20px;
+            }
+
+            #fundraiserDescription {
+                font-size: 0.5625rem;
+                letter-spacing: 0.1em;
+                margin-top: 10px;
+            }
+
+            /* Poster Image - Mobile */
+            .poster-image {
+                border-radius: 20px;
+                margin-bottom: 24px;
+            }
+
+            /* Grid Container - Mobile */
+            .grid-container {
+                grid-template-columns: repeat(5, 1fr);
+                gap: 6px;
+                padding: 20px;
+                border-radius: 20px;
+                max-width: 100%;
+            }
+
+            .square {
+                font-size: 0.75rem;
+                border-radius: 6px;
+                min-height: 44px; /* Touch-friendly */
+            }
+
+            .square.sold {
+                font-size: 0.6rem;
+                padding: 2px;
+            }
+
+            .square.sold .buyer-name {
+                font-size: 0.5rem;
+                margin-top: 1px;
+            }
+
+            /* Cart Summary - Mobile */
+            .cart-summary {
+                margin-top: 20px;
+                padding: 20px;
+                border-radius: 20px;
+                max-width: 100%;
+            }
+
+            .cart-items {
+                gap: 8px;
+                margin-bottom: 16px;
+            }
+
+            .cart-item {
+                padding: 6px 10px;
+                border-radius: 6px;
+                font-size: 0.75rem;
+            }
+
+            .checkout-btn {
+                font-size: 0.875rem;
+                padding: 14px;
+                border-radius: 10px;
+                min-height: 48px;
+            }
+
+            .timer-display {
+                font-size: 1.5rem;
+                margin-top: 12px;
+            }
+
+            /* Legend - Mobile */
+            .color-legend {
+                gap: 16px;
+                margin-top: 20px;
+                padding: 20px 16px;
+                border-radius: 20px;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .legend-item {
+                gap: 10px;
+                font-size: 0.75rem;
+                width: 100%;
+            }
+
+            .legend-box {
+                width: 32px;
+                height: 32px;
+                border-radius: 6px;
+                flex-shrink: 0;
+            }
+
+            /* Stats - Mobile */
+            .stats {
+                font-size: 1rem;
+                margin-top: 16px;
+            }
+
+            /* Modal - Mobile */
+            .modal {
+                padding: 24px;
+                border-radius: 20px;
+                width: 92%;
+                max-width: none;
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+
+            .modal h3 {
+                font-size: 1.125rem;
+                margin-bottom: 16px;
+            }
+
+            .modal p {
+                font-size: 0.875rem;
+                margin: 12px 0;
+            }
+
+            .buyer-label {
+                font-size: 0.5625rem;
+                margin-bottom: 6px;
+            }
+
+            .buyer-input {
+                padding: 12px;
+                font-size: 16px; /* Prevents iOS zoom */
+                border-radius: 12px;
+            }
+
+            .etransfer-info {
+                padding: 16px;
+                border-radius: 6px;
+                margin: 12px 0;
+            }
+
+            .etransfer-info h3 {
+                font-size: 1rem;
+            }
+
+            .etransfer-detail {
+                padding: 8px;
+                margin: 8px 0;
+            }
+
+            .etransfer-label {
+                font-size: 0.75rem;
+            }
+
+            .etransfer-value {
+                font-size: 1rem;
+            }
+
+            .important-note {
+                padding: 12px;
+                margin: 12px 0;
+                font-size: 0.75rem;
+            }
+
+            .total-display {
+                font-size: 1.25rem;
+                margin: 12px 0;
+            }
+
+            .modal-note {
+                font-size: 0.625rem;
+                margin: 12px 0;
+            }
+
+            button {
+                padding: 12px 24px;
+                font-size: 0.6875rem;
+                border-radius: 10px;
+                margin-top: 12px;
+                min-height: 44px;
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            .form-group {
+                margin: 16px 0;
+            }
+
+            .modal hr {
+                margin: 16px 0;
+            }
+
+            /* Admin Controls - Mobile */
+            .admin-controls {
+                bottom: 10px;
+                right: 10px;
+                padding: 10px;
+                border-radius: 6px;
+                max-width: calc(100% - 20px);
+            }
+
+            .admin-btn {
+                padding: 8px 16px;
+                font-size: 0.75rem;
+                min-height: 40px;
+            }
+
+            /* Lottery Animations - Mobile */
+            .lottery-overlay {
+                padding: 16px;
+            }
+
+            .lottery-message {
+                font-size: 1.75rem;
+                margin-bottom: 20px;
+            }
+
+            .lottery-winner-announcement {
+                padding: 24px 32px;
+                border-radius: 16px;
+                font-size: 2rem;
+            }
+
+            .winner-square-display {
+                width: 200px;
+                height: 200px;
+            }
+
+            .winner-square-display::before {
+                font-size: 2.5rem;
+                top: -40px;
+            }
+
+            .winner-number {
+                font-size: 4.5rem;
+            }
+
+            .winner-label {
+                font-size: 1rem;
+                letter-spacing: 2px;
+            }
+
+            .winner-name {
+                font-size: 1.5rem;
+                padding: 8px 16px;
+                border-radius: 12px;
+            }
+
+            /* Touch-optimized interactions */
+            .square,
+            button,
+            .remove-btn,
+            .checkout-btn {
+                touch-action: manipulation;
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            /* Better scrolling on mobile */
+            body,
+            .modal {
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+
+        /* Small phones (< 375px) */
+        @media (max-width: 374px) {
+            body {
+                padding: 8px;
+            }
+
+            .fundraiser-title {
+                font-size: 1.5rem;
+            }
+
+            .grid-container {
+                gap: 4px;
+                padding: 16px;
+            }
+
+            .square {
+                font-size: 0.65rem;
+                border-radius: 4px;
+            }
+
+            .cart-summary {
+                padding: 16px;
+            }
+
+            .modal {
+                padding: 16px;
+            }
+
+            .lottery-winner-announcement {
+                font-size: 1.5rem;
+                padding: 20px 24px;
+            }
+
+            .winner-number {
+                font-size: 3.5rem;
+            }
+        }
+
+        /* Landscape mobile optimization */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .fundraiser-title {
+                font-size: 1.25rem;
+                margin-bottom: 8px;
+            }
+
+            .header-logo {
+                max-width: 100px;
+                margin-bottom: 12px;
+            }
+
+            .grid-container {
+                padding: 16px;
+            }
+
+            .modal {
+                max-height: 90vh;
+                padding: 16px;
+            }
+
+            .lottery-message {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Tablet optimization (600px - 767px) */
+        @media (min-width: 600px) and (max-width: 767px) {
+            .grid-container {
+                grid-template-columns: repeat(10, 1fr);
+                max-width: 600px;
+                gap: 8px;
+                padding: 32px;
+            }
+
+            .square {
+                font-size: 0.875rem;
+            }
+
+            .fundraiser-title {
+                font-size: 2.25rem;
+            }
+
+            .modal {
+                width: 85%;
+                padding: 32px;
+            }
+        }
+
+
         .btn-cancel:hover {
             background: rgba(255, 255, 255, 0.1);
         }
