@@ -1448,21 +1448,8 @@
                 fundraiserData = data[0];
                 currentFundraiser = data[0]; // Store for later use
                 
-                // Get organizer email from auth.users via RPC or use payment_email as fallback
-                if (data[0].organizer_id) {
-                    try {
-                        const { data: userData } = await supabaseClient.auth.admin.getUserById(data[0].organizer_id);
-                        if (userData?.user?.email) {
-                            currentFundraiser.organizer_email = userData.user.email;
-                        }
-                    } catch (err) {
-                        console.warn('Could not fetch organizer email from auth, using payment_email');
-                    }
-                }
-                // Fallback to payment_email if organizer email not found
-                if (!currentFundraiser.organizer_email) {
-                    currentFundraiser.organizer_email = data[0].payment_email;
-                }
+                // Use payment_email directly from fundraiser data
+                currentFundraiser.organizer_email = data[0].payment_email;
                 PRICE_PER_SQUARE = parseFloat(data[0].square_price);
 
                 // Update page title and header elements
