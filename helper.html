@@ -274,14 +274,15 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    console.error('Edge Function error:', response.status);
+                    return "I'm currently experiencing connection issues. Please try:\n\n✅ Approving payments: Go to Admin Dashboard → Pending tab → Check bank → Click Approve\n💰 Pricing: Divide your goal by 50 squares\n📱 Mobile: Access admin from any device - check bank app, approve instantly\n🎲 Lottery: Admin Dashboard → Draw button → Winner announced\n\nNeed help? Contact support or check the documentation.";
                 }
 
                 const data = await response.json();
                 return data.response || "Connection issue. Please try again.";
             } catch (error) {
                 console.error('Error calling AI help agent:', error);
-                throw error;
+                return "I'm currently experiencing connection issues. Please try:\n\n✅ Approving payments: Go to Admin Dashboard → Pending tab → Check bank → Click Approve\n💰 Pricing: Divide your goal by 50 squares\n📱 Mobile: Access admin from any device - check bank app, approve instantly\n🎲 Lottery: Admin Dashboard → Draw button → Winner announced\n\nNeed help? Contact support or check the documentation.";
             }
         }
 

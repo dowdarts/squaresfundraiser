@@ -49,7 +49,7 @@ serve(async (req) => {
       )
     }
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`
     const payload = {
       contents: [{ parts: [{ text: message }] }],
       systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] }
@@ -57,7 +57,7 @@ serve(async (req) => {
 
     // Retry logic with exponential backoff
     let delay = 1000
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 3; i++) {
       try {
         const response = await fetch(url, {
           method: 'POST',
@@ -65,13 +65,19 @@ serve(async (req) => {
           body: JSON.stringify(payload)
         })
 
+        const data = await response.json()
+        
         if (!response.ok) {
-          const errorText = await response.text()
-          console.error('Gemini API error:', errorText)
+          console.error('Gemini API error:', response.status, JSON.stringify(data))
+          if (i === 2) {
+            return new Response(
+              JSON.stringify({ response: "I'm having trouble connecting right now. Please try again in a moment." }),
+              { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            )
+          }
           throw new Error(`Gemini API returned ${response.status}`)
         }
 
-        const data = await response.json()
         const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || "I couldn't generate a response. Please try again."
 
         return new Response(
@@ -79,7 +85,8 @@ serve(async (req) => {
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       } catch (error) {
-        if (i === 4) throw error
+        console.error(`Attempt ${i + 1} failed:`, error)
+        if (i === 2) throw error
         await new Promise(resolve => setTimeout(resolve, delay))
         delay *= 2
       }
