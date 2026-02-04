@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SquareFund | AI Help Agent</title>
+    <script>
+        // Suppress Tailwind CDN production warning
+        window.process = { env: { NODE_ENV: 'production' } };
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -247,49 +251,37 @@
     </footer>
 
     <script>
-        const apiKey = ""; 
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://xsmrquoivqrxalxjqxdw.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzbXJxdW9pdnFyeGFseGpxeGR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2NTkxNzUsImV4cCI6MjA4NTIzNTE3NX0.uJAVb4k61Oxja15NUuiC8_TtxhzWtAC-dlh-nepTKdU';
+        
         const chatWindow = document.getElementById('chat-window');
         const chatForm = document.getElementById('chat-form');
         const userInput = document.getElementById('user-input');
         const typingIndicator = document.getElementById('typing-indicator');
 
-        const SYSTEM_PROMPT = `
-        You are the SquareFund AI Help Agent, the official Concierge for squarefund.aadsdarts.com.
-        
-        KNOWLEDGE CATEGORIES:
-        1. ABOUT SQUAREFUND: It is 100% free, multi-sport (Soccer, Hockey, Darts, etc.), and replaces messy Facebook tracking.
-        2. USER MANUAL: Instructions for approving payments, running the 20-spin lottery, and customizing boards.
-        3. ADMIN TOOLKIT: Tracking who hasn't paid and managing board entries.
-        4. MOBILE MANAGEMENT: Emphasize that organizers can approve squares on their phone while shopping or at work. They just need to check their bank app then click "Approve" in the SquareFund admin.
-        5. AI FEATURES: You can write social media posts, plan fundraising goals, and announce winners.
-
-        TONE: 
-        Efficient, high-energy, and proactive. Always end responses by asking if there's anything else you can help with (e.g., "Can I help you with anything else regarding your mobile admin?"). 
-        Focus on how much easier life is when you move away from Facebook comments to an automated board.
-        `;
-
         async function callGemini(message) {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-            const payload = {
-                contents: [{ parts: [{ text: message }] }],
-                systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] }
-            };
+            const url = `${SUPABASE_URL}/functions/v1/ai-help-agent`;
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    },
+                    body: JSON.stringify({ message })
+                });
 
-            let delay = 1000;
-            for (let i = 0; i < 5; i++) {
-                try {
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                    const data = await response.json();
-                    return data.candidates?.[0]?.content?.parts?.[0]?.text || "Connection issue. Please try again.";
-                } catch (error) {
-                    if (i === 4) throw error;
-                    await new Promise(resolve => setTimeout(resolve, delay));
-                    delay *= 2;
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
+
+                const data = await response.json();
+                return data.response || "Connection issue. Please try again.";
+            } catch (error) {
+                console.error('Error calling AI help agent:', error);
+                throw error;
             }
         }
 
